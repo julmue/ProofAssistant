@@ -59,17 +59,20 @@ whiteSpace  = Token.whiteSpace lexer
 true :: Parser (F.Formula a)
 true = 
     reserved "true" >>
+    whiteSpace >>
     return F.True
     
 false :: Parser (F.Formula a)
 false =
     reserved "false" >>
+    whiteSpace >>
     return F.False
 
 atom :: Parser a -> Parser (F.Formula a)
 atom p =    
     p >>= \content ->
-    return $ F.Atom content 
+    whiteSpace >>
+    (return $ F.Atom content) 
     
 operators :: [[Expr.Operator String () Identity (F.Formula a)]]
 operators = 

@@ -11,6 +11,6 @@ data Formula a
     | Or (Formula a) (Formula a)
     | Imp (Formula a) (Formula a)
     | Iff (Formula a) (Formula a)
-    | Forall (Formula a)
-    | Exists (Formula a)
+    | Forall String (Formula a)
+    | Exists String (Formula a)
     deriving Show
