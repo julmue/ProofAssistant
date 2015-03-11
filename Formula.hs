@@ -1,5 +1,5 @@
-module Formula (Formula (..), 
-                Quantifier (..)) 
+module Formula 
+    (Formula (..)) 
 where
 
 data Formula a 
@@ -11,10 +11,6 @@ data Formula a
     | Or (Formula a) (Formula a)
     | Imp (Formula a) (Formula a)
     | Iff (Formula a) (Formula a)
-    | Quantification Quantifier (Formula a)
+    | Forall (Formula a)
+    | Exists (Formula a)
     deriving Show
-
-data Quantifier 
-    = Forall 
-    | Exists
-    deriving Show 
