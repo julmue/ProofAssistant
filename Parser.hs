@@ -7,7 +7,7 @@ import qualified Text.Parsec.Expr as Expr
 
 import Data.Functor.Identity (Identity)
 
-import qualified Formula as F
+import qualified Logic.Formula as F
 
 {- Lexer -}
 
@@ -22,7 +22,7 @@ languageDef = Token.LanguageDef
     ,   Token.identLetter       = alphaNum <|> oneOf "_'"
     ,   Token.opStart           = Token.opLetter languageDef
     ,   Token.opLetter          = oneOf "`~!@$%^&+-*/=;:<>.?"
-    ,   Token.reservedOpNames   = [".","~","&&", "||","->","<->"]
+    ,   Token.reservedOpNames   = [".","~","&&", "||","->","<->","forall","exists"]
     ,   Token.reservedNames     = ["false","true","not","and","or","imp","iff","forall","exists"]
     ,   Token.caseSensitive     = True
     }    
@@ -76,11 +76,13 @@ atom p =
     
 operators :: [[Expr.Operator String () Identity (F.Formula a)]]
 operators = 
-    [   [Expr.Prefix (reservedOp "~"        >> return (F.Not ))                                     ]
-    ,   [Expr.Infix  (reservedOp "&&"       >> return (F.And ))                     Expr.AssocRight ]    
-    ,   [Expr.Infix  (reservedOp "||"       >> return (F.Or  ))                     Expr.AssocRight ]  
-    ,   [Expr.Infix  (reservedOp "->"       >> return (F.Imp ))                     Expr.AssocRight ]  
-    ,   [Expr.Infix  (reservedOp "<->"      >> return (F.Iff ))                     Expr.AssocRight ] 
+    [   [Expr.Prefix (reservedOp "forall"   >> identifier >>= \i -> reservedOp "." >> (return $ F.Forall i))          
+        ,Expr.Prefix (reservedOp "exists"   >> identifier >>= \i -> reservedOp "." >> (return $ F.Exists i)) ]
+    ,   [Expr.Prefix (reservedOp "~"        >> return (F.Not ))                                              ]
+    ,   [Expr.Infix  (reservedOp "&&"       >> return (F.And ))                     Expr.AssocRight          ]    
+    ,   [Expr.Infix  (reservedOp "||"       >> return (F.Or  ))                     Expr.AssocRight          ]  
+    ,   [Expr.Infix  (reservedOp "->"       >> return (F.Imp ))                     Expr.AssocRight          ]  
+    ,   [Expr.Infix  (reservedOp "<->"      >> return (F.Iff ))                     Expr.AssocRight          ] 
     ]
 
 formula :: Parser a -> Parser (F.Formula a)

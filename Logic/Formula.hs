@@ -1,4 +1,4 @@
-module Formula 
+module Logic.Formula 
     (Formula (..)) 
 where
 
