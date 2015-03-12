@@ -5,6 +5,8 @@ import Formula
 import ParserFormula
 import Parser
 
+import PrettyPrint
+
 import Text.Parsec
 import Text.Parsec.String
 

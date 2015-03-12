@@ -2,6 +2,8 @@ module Formula
     (Formula (..)) 
 where
 
+import PrettyPrint
+
 data Formula a 
     = False
     | True
@@ -110,6 +112,20 @@ atomsSet fm = overAtoms (:) fm []
 -- Typeclasses of Formula
 instance Functor Formula where
     fmap = onAtoms
+
+instance PrettyPrint a => PrettyPrint (Formula a) where
+    -- prettyPrint Formula a
+    prettyPrint fm = case fm of
+        Atom a      -> braces $ prettyPrint a
+        Not p       -> braces $ "~" ++ prettyPrint p
+        And p q     -> braces $ prettyPrint p ++ "&&" ++ prettyPrint q
+        Or p q      -> braces $ prettyPrint p ++ "||" ++ prettyPrint q
+        Imp p q     -> braces $ prettyPrint p ++ "->" ++ prettyPrint q
+        Iff p q     -> braces $ prettyPrint p ++ "<->" ++ prettyPrint q
+        Forall x p  -> braces $ "forall " ++ show x ++ ":" ++ prettyPrint p 
+        Exists x p  -> braces $ "exists " ++ show x ++ ":" ++ prettyPrint p
+        where braces a = "(" ++ a ++ ")"
+ 
 
 -- functor law 1:
 -- fmap id = id
