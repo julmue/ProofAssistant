@@ -3,8 +3,8 @@ module PropSemantics
     ,   assignments
     ,   models
     ,   valid
-    ,   satisfiable
- --   ,   unsatisfiable
+    ,   sat
+    ,   unsat
     )
 where 
 
@@ -54,18 +54,21 @@ models fm =
         mask = (eval fm) <$> ass
     in [ x | (x,True) <- zipWith (,) ass mask]
 
-
+-- checks if a formula is valid / a tautology
+-- a formula is valid iff its negation is unsatisfiable
 valid :: F.Formula P.Prop -> Bool
-valid fm =
-    ((2^) $ length $ F.atomsSet fm) == (length $ models fm)
+valid = unsat . F.Not
+
+-- checks if formula is sat / a contingent formula
+sat :: F.Formula P.Prop -> Bool
+sat = not . unsat
+
+-- checks if formula is not sat / a contradiction
+unsat :: F.Formula P.Prop -> Bool
+unsat = null . models
 
 
-satisfiable :: F.Formula P.Prop -> Bool
-satisfiable = not . unsatisfiable
-
-unsatisfiable :: F.Formula P.Prop -> Bool
-unsatisfiable = null . models
-
+{- helper functions -}
 -- crossproduct
 cartP :: [a] -> [b] -> [(a,b)]
 cartP as bs = (,) <$> as <*> bs
