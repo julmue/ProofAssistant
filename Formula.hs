@@ -1,5 +1,21 @@
 module Formula 
-    (Formula (..)) 
+    ( Formula (..)
+    , mk_and
+    , mk_or
+    , mk_imp
+    , mk_forall
+    , mk_exists
+    , dest_iff
+    , antecedent
+    , consequent
+    , dest_and
+    , conjuncts
+    , dest_or
+    , disjuncts
+    , onAtoms
+    , overAtoms
+    , atomsSet
+    ) 
 where
 
 import PrettyPrint

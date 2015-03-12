@@ -1,7 +1,7 @@
 import Prop
 import PropSemantics
 import ParserProp
-import Formula
+import qualified Formula as F
 import ParserFormula
 import Parser
 
@@ -12,3 +12,14 @@ import Text.Parsec.String
 
 main :: IO ()
 main = undefined
+
+
+
+-- helper functions
+parseExp :: Parser a -> String -> a
+parseExp p s = case parse p "" s of
+    (Right a)     -> a
+    (Left err)    -> error (show err)
+
+
+
