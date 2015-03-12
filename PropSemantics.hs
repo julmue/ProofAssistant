@@ -1,6 +1,10 @@
 module PropSemantics 
     (   eval
     ,   assignments
+    ,   models
+    ,   valid
+    ,   satisfiable
+ --   ,   unsatisfiable
     )
 where 
 
@@ -33,8 +37,8 @@ eval fm v = case fm of
 -- based on the propositional variables in a logic formula
 assignments :: F.Formula P.Prop -> [P.Prop -> Bool]
 assignments fm = 
-    let props = F.atomsSet fm
-        prod = cartP props [True,False] 
+    let atoms = F.atomsSet fm
+        prod = cartP atoms [True,False] 
         eqp = groupBy (\x y -> fst x == fst y) prod
     in assignTemplate <$> (combine eqp)
     where assignTemplate :: [(P.Prop,Bool)] -> P.Prop -> Bool
@@ -49,6 +53,18 @@ models fm =
     let ass = assignments fm
         mask = (eval fm) <$> ass
     in [ x | (x,True) <- zipWith (,) ass mask]
+
+
+valid :: F.Formula P.Prop -> Bool
+valid fm =
+    ((2^) $ length $ F.atomsSet fm) == (length $ models fm)
+
+
+satisfiable :: F.Formula P.Prop -> Bool
+satisfiable = not . unsatisfiable
+
+unsatisfiable :: F.Formula P.Prop -> Bool
+unsatisfiable = null . models
 
 -- crossproduct
 cartP :: [a] -> [b] -> [(a,b)]

@@ -22,4 +22,5 @@ parseExp p s = case parse p "" s of
     (Left err)    -> error (show err)
 
 
+parseProp = parseExp formulaProp
 
