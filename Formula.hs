@@ -19,6 +19,7 @@ module Formula
 where
 
 import PrettyPrint
+import Data.List
 
 data Formula a 
     = False
@@ -118,8 +119,8 @@ overAtoms f fm b = case fm of
     Exists x p  -> overAtoms f p b
 
 -- build the set of all atoms in a Formula
-atomsSet :: Formula a -> [a]
-atomsSet fm = overAtoms (:) fm []
+atomsSet :: Eq a => Formula a -> [a]
+atomsSet fm = nub $  overAtoms (:) fm []
 
 
 
