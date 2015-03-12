@@ -15,7 +15,7 @@ import Prop
 import Formula
 
 prop :: Parser Prop
-prop =  Prop <$> (many1 letter) 
+prop =  Prop <$> many1 letter 
 
 formulaProp :: Parser (Formula Prop)
 formulaProp = formula prop

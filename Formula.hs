@@ -1,16 +1,16 @@
 module Formula 
     ( Formula (..)
-    , mk_and
-    , mk_or
-    , mk_imp
-    , mk_forall
-    , mk_exists
-    , dest_iff
+    , mkAnd
+    , mkOr
+    , mkImp
+    , mkForall
+    , mkExists
+    , destIff
     , antecedent
     , consequent
-    , dest_and
+    , destAnd
     , conjuncts
-    , dest_or
+    , destOr
     , disjuncts
     , onAtoms
     , overAtoms
@@ -36,56 +36,56 @@ data Formula a
 
 
 -- constructor functions
-mk_and :: (Formula a) -> (Formula a) -> (Formula a) 
-mk_and p q = And p q
+mkAnd :: Formula a -> Formula a -> Formula a 
+mkAnd = And
 
-mk_or :: (Formula a) -> (Formula a) -> (Formula a)
-mk_or p q = Or p q
+mkOr :: Formula a -> Formula a -> Formula a
+mkOr = Or
 
-mk_imp :: (Formula a) -> (Formula a) -> (Formula a)
-mk_imp p q = Imp p q
+mkImp :: Formula a -> Formula a -> Formula a
+mkImp = Imp
 
-mk_iff :: (Formula a) -> (Formula a) -> (Formula a)
-mk_iff p q = Iff p q
+mkIff :: Formula a -> Formula a -> Formula a
+mkIff = Iff
 
-mk_forall :: String -> (Formula a) -> (Formula a)
-mk_forall s p = Forall s p
+mkForall :: String -> Formula a -> Formula a
+mkForall = Forall
 
-mk_exists :: String -> (Formula a) -> (Formula a)
-mk_exists s p = Exists s p
+mkExists :: String -> Formula a -> Formula a
+mkExists = Exists
 
 -- destructor functions
-dest_iff :: (Formula a) -> ((Formula a),(Formula a))
-dest_iff fm = case fm of
+destIff :: Formula a -> (Formula a,Formula a)
+destIff fm = case fm of
     (Iff p q)   -> (p,q)
     _           -> error "dest_iff: argument not an Iff"
 
-antecedent :: (Formula a) -> (Formula a)
+antecedent :: Formula a -> Formula a
 antecedent fm = case fm of
     (Iff p _)   -> p
     _           -> error "antecedent: argument not an IFF"
 
-consequent :: (Formula a) -> (Formula a)
+consequent :: Formula a -> Formula a
 consequent fm = case fm of
     (Iff _ q)   -> q
     _           -> error "antecedent: argument not an IFF"
 
-dest_and :: (Formula a) -> ((Formula a),(Formula a))
-dest_and fm = case fm of
+destAnd :: Formula a -> (Formula a,Formula a)
+destAnd fm = case fm of
     (And p q)   -> (p,q)
     _           -> error "dest_iff: argument not and And"
 
-conjuncts :: (Formula a) -> [(Formula a)]
+conjuncts :: Formula a -> [Formula a]
 conjuncts fm = case fm of
     (And p q)   -> conjuncts p ++ conjuncts q
     _           -> [fm]
 
-dest_or :: (Formula a) -> ((Formula a),(Formula a))
-dest_or fm = case fm of
+destOr :: Formula a -> (Formula a,Formula a)
+destOr fm = case fm of
     (Or p q)   -> (p,q)
     _           -> error "dest_iff: argument not and Or"
 
-disjuncts :: (Formula a) -> [(Formula a)]
+disjuncts :: Formula a -> [Formula a]
 disjuncts fm = case fm of
     (Or p q)   -> disjuncts p ++ disjuncts q
     _           -> [fm]
@@ -94,7 +94,7 @@ disjuncts fm = case fm of
 
 -- apply function to all atoms of formula but leave structure untouched
 -- ?? are formulas Functors ?? this looks like fmap ... ??
-onAtoms :: (a -> b) -> (Formula a) -> (Formula b)
+onAtoms :: (a -> b) -> Formula a -> Formula b
 onAtoms f fm = case fm of
     Atom a      -> Atom $ f a
     Not p       -> Not $ onAtoms f p
@@ -107,7 +107,7 @@ onAtoms f fm = case fm of
 --    _           -> fm that necessary? destroys (a -> b) and Functor behaviour
 
 -- overatoms
--- overAtoms :: (a -> b -> b) -> (Formula a) -> b -> b 
+overAtoms :: (a -> b -> b) -> Formula a -> b -> b 
 overAtoms f fm b = case fm of
     Atom a      -> f a b
     Not p       -> overAtoms f p b
@@ -122,11 +122,7 @@ overAtoms f fm b = case fm of
 atomsSet :: Eq a => Formula a -> [a]
 atomsSet fm = nub $  overAtoms (:) fm []
 
-
-
-
-
--- Typeclasses of Formula
+{- typeclass instances of Formula -}
 instance Functor Formula where
     fmap = onAtoms
 

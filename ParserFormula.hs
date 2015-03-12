@@ -72,17 +72,17 @@ atom :: Parser a -> Parser (F.Formula a)
 atom p =    
     p >>= \content ->
     whiteSpace >>
-    (return $ F.Atom content) 
+    return (F.Atom content) 
     
 operators :: [[Expr.Operator String () Identity (F.Formula a)]]
 operators = 
-    [   [Expr.Prefix (reservedOp "forall"   >> identifier >>= \i -> reservedOp "." >> (return $ F.Forall i))          
-        ,Expr.Prefix (reservedOp "exists"   >> identifier >>= \i -> reservedOp "." >> (return $ F.Exists i)) ]
-    ,   [Expr.Prefix (reservedOp "~"        >> return (F.Not ))                                              ]
-    ,   [Expr.Infix  (reservedOp "&&"       >> return (F.And ))                     Expr.AssocRight          ]    
-    ,   [Expr.Infix  (reservedOp "||"       >> return (F.Or  ))                     Expr.AssocRight          ]  
-    ,   [Expr.Infix  (reservedOp "->"       >> return (F.Imp ))                     Expr.AssocRight          ]  
-    ,   [Expr.Infix  (reservedOp "<->"      >> return (F.Iff ))                     Expr.AssocRight          ] 
+    [   [Expr.Prefix (reservedOp "forall"   >> identifier >>= \i -> reservedOp "." >> return (F.Forall i))          
+        ,Expr.Prefix (reservedOp "exists"   >> identifier >>= \i -> reservedOp "." >> return (F.Exists i))   ]
+    ,   [Expr.Prefix (reservedOp "~"        >> return F.Not )                                                ]
+    ,   [Expr.Infix  (reservedOp "&&"       >> return F.And )                       Expr.AssocRight          ]    
+    ,   [Expr.Infix  (reservedOp "||"       >> return F.Or  )                       Expr.AssocRight          ]  
+    ,   [Expr.Infix  (reservedOp "->"       >> return F.Imp )                       Expr.AssocRight          ]  
+    ,   [Expr.Infix  (reservedOp "<->"      >> return F.Iff )                       Expr.AssocRight          ] 
     ]
 
 formula :: Parser a -> Parser (F.Formula a)

@@ -5,5 +5,5 @@ import PrettyPrint
 newtype Prop = Prop { propName :: String } deriving (Show, Eq, Ord)
 
 instance PrettyPrint Prop where
-    prettyPrint p = propName p
+    prettyPrint = propName
      
