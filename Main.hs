@@ -1,4 +1,5 @@
 import Prop
+import PropSemantics
 import ParserProp
 import Formula
 import ParserFormula
