@@ -15,6 +15,8 @@ module Formula
     , onAtoms
     , overAtoms
     , atomsSet
+    , simSubs
+    , seqSubs
     ) 
 where
 
@@ -32,7 +34,7 @@ data Formula a
     | Iff (Formula a) (Formula a)
     | Forall String (Formula a)
     | Exists String (Formula a)
-    deriving Show
+    deriving (Show, Eq)
 
 
 -- constructor functions
@@ -113,7 +115,7 @@ overAtoms f fm b = case fm of
     Not p       -> overAtoms f p b
     And p q     -> overAtoms f p (overAtoms f q b) 
     Or p q      -> overAtoms f p (overAtoms f q b)
-    Imp p q      -> overAtoms f p (overAtoms f q b)
+    Imp p q     -> overAtoms f p (overAtoms f q b)
     Iff p q     -> overAtoms f p (overAtoms f q b)
     Forall x p  -> overAtoms f p b
     Exists x p  -> overAtoms f p b
@@ -121,6 +123,30 @@ overAtoms f fm b = case fm of
 -- build the set of all atoms in a Formula
 atomsSet :: Eq a => Formula a -> [a]
 atomsSet fm = nub $  overAtoms (:) fm []
+
+{- substitution -}
+
+-- simultaneous substitution
+-- if more than one substitution is specified for the same atom
+-- the first one in the list is applied
+-- simSub :: [(Formula a, Formula a)] -> Formula a -> Formula a
+simSubs subList fm = case fm of 
+    atom@(Atom _)   -> let substitutions = [ subs | subs@(fst,_) <- subList, fst == atom ]
+                       in if null substitutions
+                          then atom
+                          else snd . head $ substitutions
+    Not p           -> Not $ simSubs subList p
+    And p q         -> And (simSubs subList p) (simSubs subList q)
+    Or p q          -> Or (simSubs subList p) (simSubs subList q)
+    Imp p q         -> Imp (simSubs subList p) (simSubs subList q)
+    Iff p q         -> Iff (simSubs subList p) (simSubs subList q)
+    Forall x p      -> Forall x $ simSubs subList p
+    Exists x p      -> Exists x $ simSubs subList p
+    
+seqSubs :: Eq a => [(Formula a, Formula a)] -> Formula a -> Formula a
+seqSubs (sub:subs) fm = let fm' = simSubs [sub] fm in seqSubs subs fm'
+seqSubs [] fm = fm
+
 
 {- typeclass instances of Formula -}
 instance Functor Formula where
