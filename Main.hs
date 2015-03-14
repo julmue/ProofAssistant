@@ -2,6 +2,7 @@ import Prop
 import PropSemantics
 import ParserProp
 import qualified Formula as F
+import FormulaPCLaws
 import ParserFormula
 import Parser
 

@@ -13,10 +13,13 @@ module Formula
     , destOr
     , disjuncts
     , onAtoms
+    , onFormulas
     , overAtoms
     , atomsSet
     , simSubs
     , seqSubs
+    , replace
+    , deMorgan1
     ) 
 where
 
@@ -108,6 +111,18 @@ onAtoms f fm = case fm of
     Exists x p  -> Forall x $ onAtoms f p
 --    _           -> fm that necessary? destroys (a -> b) and Functor behaviour
 
+onFormulas :: (Formula a -> Formula a) -> Formula a -> Formula a
+onFormulas f fm0 = case fm0 of
+    Atom a      -> Atom a
+    Not fm1     -> Not $ f fm1
+    And fm1 fm2 -> And (f fm1) (f fm2)
+    Or  fm1 fm2 -> Or  (f fm1) (f fm2)
+    Imp fm1 fm2 -> Imp (f fm1) (f fm2)
+    Iff fm1 fm2 -> Iff (f fm1) (f fm2)
+
+
+
+
 -- overatoms
 overAtoms :: (a -> b -> b) -> Formula a -> b -> b 
 overAtoms f fm b = case fm of
@@ -147,7 +162,17 @@ seqSubs :: Eq a => [(Formula a, Formula a)] -> Formula a -> Formula a
 seqSubs (sub:subs) fm = let fm' = simSubs [sub] fm in seqSubs subs fm'
 seqSubs [] fm = fm
 
+replace :: (Formula a -> Formula a) -> Formula a -> Formula a
+replace rep fm = onFormulas (replace rep) $ rep fm
 
+{- laws of PC -}
+
+deMorgan1 :: Formula a -> Formula a
+deMorgan1 fm = case fm of
+    Not (And sfm1 sfm2) -> Or (Not sfm1) (Not sfm2)
+    _ -> fm 
+
+    
 {- typeclass instances of Formula -}
 instance Functor Formula where
     fmap = onAtoms
