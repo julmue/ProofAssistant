@@ -1,4 +1,4 @@
-module PropSemantics
+module PropSemanticsPC
     (   eval
     ,   assignments
     ,   models

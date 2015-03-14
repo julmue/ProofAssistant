@@ -1,5 +1,5 @@
 import Prop
-import PropSemantics
+import PropSemanticsPC
 import ParserProp
 import qualified Formula as F
 import FormulaPCLaws
