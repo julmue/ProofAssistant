@@ -1,3 +1,4 @@
+import Semantics
 import Prop
 import PropSemanticsPC
 import ParserProp
@@ -41,9 +42,6 @@ import Text.Parsec.String
 -- }
 
 -- Semantic :: truth values and evaluation function
-
-data Semantic (Formula a)
-    deriving Show
 
 main :: IO ()
 main = undefined
