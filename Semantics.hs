@@ -8,12 +8,13 @@ import Prelude as Pl
 
 -- class of semantics for a
 
-class Semantics s where
-    isModel :: s (F.Formula a) -> model -> F.Formula a -> Pl.Bool
-    models :: s (F.Formula a) -> F.Formula a -> [model]
-    valid :: s (F.Formula a) -> F.Formula a -> Pl.Bool
-    sat :: s (F.Formula a) -> F.Formula a -> Pl.Bool
-    unsat :: s (F.Formula a) -> F.Formula a -> Pl.Bool
+data Semantics a b = Semantics {
+    isModel :: F.Formula a -> b -> Pl.Bool,
+    models :: F.Formula a -> [b],
+    valid :: F.Formula a -> Pl.Bool,
+    sat :: F.Formula a -> Pl.Bool,
+    unsat :: F.Formula a -> Pl.Bool
+}
 
 {- Todo:
     are there some sensible defaults for valid, unsat and sat,

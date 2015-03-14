@@ -1,10 +1,5 @@
 module PropSemanticsPC
-    (   eval
-    ,   assignments
-    ,   models
-    ,   valid
-    ,   sat
-    ,   unsat
+    ( pc
     )
 where
 
@@ -15,6 +10,7 @@ import Data.List
 import Data.Function (on)
 import Data.Maybe (fromMaybe)
 
+import qualified Semantics as S
 import qualified Formula as F
 import qualified Prop as P
 
@@ -70,5 +66,10 @@ sat = not . unsat
 unsat :: F.Formula P.Prop -> Bool
 unsat = null . models
 
-
-
+pc = S.Semantics {
+    S.isModel = eval,
+    S.models = models,
+    S.valid = valid,
+    S.sat = sat,
+    S.unsat = unsat
+}
