@@ -1,4 +1,7 @@
-module ParserFormula where 
+module ParserFormula
+    (   formula
+    )
+where
 
 import Text.Parsec
 import Text.Parsec.String
@@ -25,7 +28,7 @@ languageDef = Token.LanguageDef
     ,   Token.reservedOpNames   = [".","~","&&", "||","->","<->","forall","exists"]
     ,   Token.reservedNames     = ["false","true","not","and","or","imp","iff","forall","exists"]
     ,   Token.caseSensitive     = True
-    }    
+    }
 
 -- construction of the lexer using the lexerStyle parameter-collection
 -- () means no user definede state
@@ -57,11 +60,11 @@ whiteSpace  = Token.whiteSpace lexer
 {- main parser -}
 
 true :: Parser (F.Formula a)
-true = 
+true =
     reserved "true" >>
     whiteSpace >>
     return F.True
-    
+
 false :: Parser (F.Formula a)
 false =
     reserved "false" >>
@@ -69,33 +72,33 @@ false =
     return F.False
 
 atom :: Parser a -> Parser (F.Formula a)
-atom p =    
+atom p =
     p >>= \content ->
     whiteSpace >>
-    return (F.Atom content) 
-    
+    return (F.Atom content)
+
 operators :: [[Expr.Operator String () Identity (F.Formula a)]]
-operators = 
-    [   [Expr.Prefix (reservedOp "forall"   >> identifier >>= \i -> reservedOp "." >> return (F.Forall i))          
+operators =
+    [   [Expr.Prefix (reservedOp "forall"   >> identifier >>= \i -> reservedOp "." >> return (F.Forall i))
         ,Expr.Prefix (reservedOp "exists"   >> identifier >>= \i -> reservedOp "." >> return (F.Exists i))   ]
     ,   [Expr.Prefix (reservedOp "~"        >> return F.Not )                                                ]
-    ,   [Expr.Infix  (reservedOp "&&"       >> return F.And )                       Expr.AssocRight          ]    
-    ,   [Expr.Infix  (reservedOp "||"       >> return F.Or  )                       Expr.AssocRight          ]  
-    ,   [Expr.Infix  (reservedOp "->"       >> return F.Imp )                       Expr.AssocRight          ]  
-    ,   [Expr.Infix  (reservedOp "<->"      >> return F.Iff )                       Expr.AssocRight          ] 
+    ,   [Expr.Infix  (reservedOp "&&"       >> return F.And )                       Expr.AssocRight          ]
+    ,   [Expr.Infix  (reservedOp "||"       >> return F.Or  )                       Expr.AssocRight          ]
+    ,   [Expr.Infix  (reservedOp "->"       >> return F.Imp )                       Expr.AssocRight          ]
+    ,   [Expr.Infix  (reservedOp "<->"      >> return F.Iff )                       Expr.AssocRight          ]
     ]
 
 formula :: Parser a -> Parser (F.Formula a)
-formula p = 
-    Expr.buildExpressionParser operators 
+formula p =
+    Expr.buildExpressionParser operators
     (    parens (formula p)
      <|> true
-     <|> false 
+     <|> false
      <|> atom p
     )
 
--- example: 
+-- example:
 -- (parse $ formula letter) "" "atom h"
 -- > Atom 'h'
 
-    
+
