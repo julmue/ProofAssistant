@@ -187,7 +187,7 @@ argExpr=
         try (sems >>= \ss -> whiteSpace >> (return $ S ss))
     <|> try (pqueries >>= \qs -> whiteSpace >> (return $ P qs))
     <|> try (formula >>= \f -> whiteSpace >> (return $ F f))
-    <|> try (normalforms >>= \ns -> whiteSpace >> (return $ NF ns))
+    <|> try (normalforms >>= \ns -> whiteSpace >> (return $ N ns))
     <|> (help >>= \h -> whiteSpace >> (return $ H h))
 
 requestArgs :: Parser [Arg]
