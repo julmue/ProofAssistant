@@ -4,9 +4,8 @@ module Request
 
 where
 
-import qualified Prelude as Pl
+import Prelude (String,Bool,Show)
 
-import Parsable
 import qualified Formula as F
 
 -- which typeclass could be best used as constrained?
@@ -14,7 +13,7 @@ import qualified Formula as F
 
 data Request = Request {
     getReqSemantics        :: [String],
-    getReqFormula          :: forall a . Parsable a => F.Formula a,
+    getReqFormula          :: F.Formula DummyBox,
     getReqQueries          :: [PQuery],
     getReqNormalforms      :: [Normalform],
     getReqHelp             :: Bool
@@ -22,7 +21,7 @@ data Request = Request {
 
 data Task = Task {
     getTaskSemantics    :: String,
-    getTaskFormula      :: forall a . Parsable a => F.Formula a,
+    getTaskFormula      :: F.Formula DummyBox,
     getTaskAction       :: Action
 }
 
@@ -32,4 +31,7 @@ data PQuery = Classify | Valid | Sat | Unsat | Model | Models deriving Show
 
 data Normalform = CND | DNF deriving Show   -- others to follow
 
+class Dummy a where
+    dummy :: a
 
+data DummyBox = forall a. Dummy a => DB a
