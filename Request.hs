@@ -56,6 +56,9 @@ data Action = PQuery | Normalform deriving Show
 
 data PQuery = Classify | Valid | Sat | Unsat | Model | Models deriving Show
 
-data Normalform = CND | DNF deriving Show   -- others to follow
+data Normalform = CNF | DNF deriving Show
+
+data Help = Help deriving Show
+-- others to follow
 
 data Semantics = PC | L3 deriving Show

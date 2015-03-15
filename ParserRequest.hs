@@ -10,16 +10,9 @@ import Text.Parsec.Char (noneOf)
 import Text.Parsec.String (Parser)
 import qualified Text.Parsec.Token as Token
 
-{- grammar for request object:
+{- situation:
 
-    request :=
-
-
--}
-
-{- Ausgangspunkt:
-
-    ein string:
+    input: a string
     * "s: PC,L3 pq: classify, models nf: cnf,dnf f: a && b "
     * "pq: classify"
     * ""
@@ -36,22 +29,6 @@ import qualified Text.Parsec.Token as Token
     then parse it...
     after all possible parsers have been applied all the information
     is collected and the request object can be constructed.
-
-    ReqExpr =
-        Empty
-        SemExpr ReqExpr
-        FormExpr ReqExpr
-        PQueryExpr ReqExpr
-        NFormExpr ReqExpr
-        HelpExpr ReqExpr
-
-    SemExpr =
-        Empty
-        PC SemExpr
-        L3 SenExpr
-
-    PQueryExpr =
-        ...
 
 -}
 
@@ -100,7 +77,7 @@ sems = reserved "-s" >>
        return s
 
 sem :: Parser Semantics
-sem = pc <|> l3
+sem = try pc <|> l3
 
 pc :: Parser Semantics
 pc = reserved "pc" >>
@@ -122,14 +99,98 @@ formula =
     return f
     where delimiterFormula = "\'"
 
-{- Parser for requests -}
+{- parser for property queries -}
+classify :: Parser PQuery
+classify =
+    reserved "classify" >>
+    whiteSpace >>
+    return Classify
 
--- tree
+valid :: Parser PQuery
+valid =
+    reserved "valid" >>
+    whiteSpace >>
+    return Valid
+
+sat :: Parser PQuery
+sat =
+    reserved "sat" >>
+    whiteSpace >>
+    return Sat
+
+unsat :: Parser PQuery
+unsat =
+    reserved "unsat" >>
+    whiteSpace >>
+    return Unsat
+
+model :: Parser PQuery
+model =
+    reserved "model" >>
+    whiteSpace >>
+    return Model
+
+models :: Parser PQuery
+models =
+    reserved "models" >>
+    whiteSpace >>
+    return Models
+
+pquery :: Parser PQuery
+pquery =
+        try sat
+    <|> try unsat
+    <|> try valid
+    <|> try models
+    <|> model
+
+pqueries :: Parser [PQuery]
+pqueries =
+    reserved "-q" >>
+    whiteSpace >>
+    many1 pquery
+
+{- Parser for help request -}
+help :: Parser Help
+help =
+    reserved "-h" >>
+    whiteSpace >>
+    return Help
+
+{- Parser for normal forms -}
+cnf :: Parser Normalform
+cnf =
+    reserved "cnf" >>
+    whiteSpace >>
+    return CNF
+
+dnf :: Parser Normalform
+dnf =
+    reserved "dnf" >>
+    whiteSpace >>
+    return DNF
+
+normalform :: Parser Normalform
+normalform =
+    dnf <|> cnf
+
+normalforms :: Parser [Normalform]
+normalforms =
+    reserved "-n" >>
+    whiteSpace >>
+    many1 normalform
+
+
+{- Parser for requests -}
 data ArgExpr
     = SemExpr [Semantics]
+    | PQueryExpr [PQuery]
     | FormExpr String
+    | NFormExpr [Normalform]
+    | HelpExpr Help
     deriving Show
 
+-- the argument expressions get collected in a linear tree
 data LinearTree a
     = Node a (LinearTree a)
     | Leaf a
@@ -155,8 +216,11 @@ leaf pa =
 
 argExpr :: Parser ArgExpr
 argExpr=
-        try (sems >>= \s -> whiteSpace >> (return $ SemExpr s))
-    <|> (formula >>= \f -> whiteSpace >> (return $ FormExpr f))
+        try (sems >>= \ss -> whiteSpace >> (return $ SemExpr ss))
+    <|> try (pqueries >>= \qs -> whiteSpace >> (return $ PQueryExpr qs))
+    <|> try (formula >>= \f -> whiteSpace >> (return $ FormExpr f))
+    <|> try (normalforms >>= \ns -> whiteSpace >> (return $ NFormExpr ns))
+    <|> (help >>= \h -> whiteSpace >> (return $ HelpExpr h))
 
 argExprTree :: Parser (LinearTree ArgExpr)
 argExprTree = linearTree argExpr
@@ -164,3 +228,7 @@ argExprTree = linearTree argExpr
 -- TODO:
 -- get rid of all the 'whiteSpace' all over the code
 -- shouldn't the tokenizer take care of that?
+-- this is an awful lot of boilerplate ... reduce that!
+-- instead of a tree wouldn't it be better to just parse into a list
+-- and sort the list afterwards?
+-- a linear tree is just a list ...
