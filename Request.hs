@@ -59,6 +59,13 @@ data PQuery = Classify | Valid | Sat | Unsat | Model | Models deriving Show
 data Normalform = CNF | DNF deriving Show
 
 data Help = Help deriving Show
--- others to follow
 
 data Semantics = PC | L3 deriving Show
+
+data Arg
+    = S [Semantics]
+    | P [PQuery]
+    | F String
+    | NF [Normalform]
+    | H Help
+    deriving Show
