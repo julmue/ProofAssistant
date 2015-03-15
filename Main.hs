@@ -2,6 +2,7 @@ import Semantics
 import Prop
 import PropSemanticsPC
 import ParserProp
+import ParserRequestArguments
 import qualified Formula as F
 import FormulaPCLaws
 import ParserFormula
@@ -12,48 +13,7 @@ import PrettyPrint
 import Text.Parsec
 import Text.Parsec.String
 
-{- clank
-    command line arguments:
-    -- semantics: PC, L3, ...
-       -- default: PC
-    -- formula: "<String>"
-    property queries:
-    -- default: classify
-    -- classify:    tautology, neutrality, contradiction
-    -- valid:       validity check
-    -- sat:         satisfiability check
-    -- unsat:       unsatisfiability check
-    -- model:       one model
-    -- models:      all models
-    transformations:
-    -- nf:          normal form (CNF,DNF,...)
-                    * default: CNF
-    -- help
 
-    probably best to put that all in a record;
-    some kind of "request objects" ... then a request parse could be implemened
-
--}
-
-data Request a b = Request {
-    getReqSemantics        :: [String],
-    getReqFormula          :: F.Formula a, -- is it possible to parse a formula to more than one type? 
-    getReqQueries          :: [PQuery],
-    getReqNormalforms      :: [Normalform],
-    getReqHelp             :: Bool
-}
-
-data Task a b = Task {
-    getTaskSemantics    :: Semantics a b,
-    getTaskFormula      :: F.Formula a,
-    getTaskAction       :: Action
-}
-
-data Action = PQuery | Normalform deriving Show
-
-data PQuery = Classify | Valid | Sat | Unsat | Model | Models deriving Show
-
-data Normalform = CND | DNF deriving Show   -- others to follow
 
 
 main :: IO ()
