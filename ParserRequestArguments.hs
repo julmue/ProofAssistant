@@ -182,23 +182,15 @@ normalforms =
     many1 normalform
 
 {- Parser for request arguments -}
-data ArgExpr
-    = SemExpr [Semantics]
-    | PQueryExpr [PQuery]
-    | FormExpr String
-    | NFormExpr [Normalform]
-    | HelpExpr Help
-    deriving Show
-
-argExpr :: Parser ArgExpr
+argExpr :: Parser Arg
 argExpr=
-        try (sems >>= \ss -> whiteSpace >> (return $ SemExpr ss))
-    <|> try (pqueries >>= \qs -> whiteSpace >> (return $ PQueryExpr qs))
-    <|> try (formula >>= \f -> whiteSpace >> (return $ FormExpr f))
-    <|> try (normalforms >>= \ns -> whiteSpace >> (return $ NFormExpr ns))
-    <|> (help >>= \h -> whiteSpace >> (return $ HelpExpr h))
+        try (sems >>= \ss -> whiteSpace >> (return $ S ss))
+    <|> try (pqueries >>= \qs -> whiteSpace >> (return $ P qs))
+    <|> try (formula >>= \f -> whiteSpace >> (return $ F f))
+    <|> try (normalforms >>= \ns -> whiteSpace >> (return $ NF ns))
+    <|> (help >>= \h -> whiteSpace >> (return $ H h))
 
-requestArgs :: Parser [ArgExpr]
+requestArgs :: Parser [Arg]
 requestArgs = many1 argExpr
 
 -- TODO:
