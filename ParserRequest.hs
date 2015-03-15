@@ -1,5 +1,6 @@
-module ParserRequest
-
+module ParserRequestArguments
+    ( requestArgs
+    )
 where
 
 import Request
@@ -180,8 +181,7 @@ normalforms =
     whiteSpace >>
     many1 normalform
 
-
-{- Parser for requests -}
+{- Parser for request arguments -}
 data ArgExpr
     = SemExpr [Semantics]
     | PQueryExpr [PQuery]
@@ -189,30 +189,6 @@ data ArgExpr
     | NFormExpr [Normalform]
     | HelpExpr Help
     deriving Show
-
--- the argument expressions get collected in a linear tree
-data LinearTree a
-    = Node a (LinearTree a)
-    | Leaf a
-    deriving Show
-
-linearTree :: Parser a -> Parser (LinearTree a)
-linearTree pa =
-    try (node pa) <|> (leaf pa)
-
-node :: Parser a -> Parser (LinearTree a)
-node pa =
-    pa >>= \a ->
-    whiteSpace >>
-    (linearTree pa) >>= \t ->
-    whiteSpace >>
-    (return $ Node a t)
-
-leaf :: Parser a -> Parser (LinearTree a)
-leaf pa =
-    pa >>= \a ->
-    whiteSpace >>
-    (return $ Leaf a)
 
 argExpr :: Parser ArgExpr
 argExpr=
@@ -222,13 +198,11 @@ argExpr=
     <|> try (normalforms >>= \ns -> whiteSpace >> (return $ NFormExpr ns))
     <|> (help >>= \h -> whiteSpace >> (return $ HelpExpr h))
 
-argExprTree :: Parser (LinearTree ArgExpr)
-argExprTree = linearTree argExpr
+requestArgs :: Parser [ArgExpr]
+requestArgs = many1 argExpr
 
 -- TODO:
 -- get rid of all the 'whiteSpace' all over the code
 -- shouldn't the tokenizer take care of that?
 -- this is an awful lot of boilerplate ... reduce that!
--- instead of a tree wouldn't it be better to just parse into a list
--- and sort the list afterwards?
--- a linear tree is just a list ...
+
