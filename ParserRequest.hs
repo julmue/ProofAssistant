@@ -142,18 +142,25 @@ linearTree pa =
 node :: Parser a -> Parser (LinearTree a)
 node pa =
     pa >>= \a ->
+    whiteSpace >>
     (linearTree pa) >>= \t ->
-    return $ Node a t
+    whiteSpace >>
+    (return $ Node a t)
 
 leaf :: Parser a -> Parser (LinearTree a)
 leaf pa =
     pa >>= \a ->
-    return $ Leaf a
+    whiteSpace >>
+    (return $ Leaf a)
 
 argExpr :: Parser ArgExpr
 argExpr=
-        try (sems >>= \s -> return $ SemExpr s)
-    <|> (formula >>= \f -> return $ FormExpr f)
+        try (sems >>= \s -> whiteSpace >> (return $ SemExpr s))
+    <|> (formula >>= \f -> whiteSpace >> (return $ FormExpr f))
 
 argExprTree :: Parser (LinearTree ArgExpr)
 argExprTree = linearTree argExpr
+
+-- TODO:
+-- get rid of all the 'whiteSpace' all over the code
+-- shouldn't the tokenizer take care of that?
