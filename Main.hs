@@ -3,7 +3,7 @@ import FormulaPCLaws
 import Parser
 import ParserFormula
 import ParserProp
-import qualified ParserRequest as PR
+import qualified ParserRequestArgs as PR
 import PrettyPrint
 import Prop
 import PropSemanticsPC
