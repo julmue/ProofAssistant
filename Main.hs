@@ -3,11 +3,11 @@ import FormulaPCLaws
 import Parser
 import ParserFormula
 import ParserProp
-import qualified ParserRequestArguments as Args
+import qualified ParserRequest as PR
 import PrettyPrint
 import Prop
 import PropSemanticsPC
-import Request
+import qualified Request as REQ
 import Semantics
 
 import Text.Parsec
@@ -23,17 +23,17 @@ data Prop
     | Unsat
     deriving (Show, Eq)
 
-processTask :: Task -> IO ()
-processTask t =
-    let f = getTaskFormula t
-        s = getTaskSemantics t
-    in  case getTaskaction t of
-        (PQAction pqa)  -> processPQAction f s pqa
-        (NfAction nfa)  -> processNfAction f s nfa
-        (HAction)       -> getHelp
-
-processPQAction :: String -> Semantics ->
-processPQAction f s pqa
+-- processTask :: Task -> IO ()
+-- processTask t =
+--     let f = getTaskFormula t
+--         s = getTaskSemantics t
+--     in  case getTaskaction t of
+--         (PQAction pqa)  -> processPQAction f s pqa
+--         (NfAction nfa)  -> processNfAction f s nfa
+--         (HAction)       -> getHelp
+--
+-- processPQAction :: String -> Semantics ->
+-- processPQAction f s pqa
 
 
 -- helper functions
