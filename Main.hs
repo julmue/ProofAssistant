@@ -1,21 +1,25 @@
+{-# OPTIONS_GHC -XExistentialQuantification #-}
+
+-- {-# OPTIONS_GHC -Wall #-}
+
+import Control.Applicative
+import Control.Monad
+import System.Environment (getArgs)
+
 import qualified Formula as F
 import FormulaPCLaws
 import Parser
 import ParserFormula
 import ParserProp
-import qualified ParserRequestArgs as PR
+import ParserRequestArgs
 import PrettyPrint
-import Prop
-import PropSemanticsPC
-import qualified Request as REQ
-import Semantics
+import qualified Prop as P
+import qualified PropSemanticsPC as PC
+import qualified Request as R
+import qualified Semantics as S
 
 import Text.Parsec
 import Text.Parsec.String
-
-
-main :: IO ()
-main = undefined
 
 data Prop
     = Valid
@@ -23,27 +27,63 @@ data Prop
     | Unsat
     deriving (Show, Eq)
 
--- processTask :: Task -> IO ()
--- processTask t =
---     let f = getTaskFormula t
---         s = getTaskSemantics t
---     in  case getTaskaction t of
---         (PQAction pqa)  -> processPQAction f s pqa
---         (NfAction nfa)  -> processNfAction f s nfa
---         (HAction)       -> getHelp
---
--- processPQAction :: String -> Semantics ->
--- processPQAction f s pqa
+main :: IO ()
+main =
+    concat <$> getArgs >>= \args ->
+    case parse requestArgs "cmdline" args of
+    (Left err)      -> error $ "Error parsing command line arguments: " ++ (show err)
+    (Right args)    -> mapM_ print (fmap processTask $ R.toTasks args)
+
+
+-- processTasks = fmap processTasks
+data ShowBox = forall s. Show s => SB s
+
+instance Show ShowBox where
+    show (SB c) = show c
+
+processTask :: R.Task -> ShowBox
+processTask t =
+    let f = R.getTaskFormula t
+        s = R.getTaskSemantics t
+    in  case R.getTaskAction t of
+        R.ClassifyAction      -> SB $ classification s f
+--         (R.PropAction pa)     -> SB $ property f s pa
+--         (R.ModelAction ma)    -> SB $ models f s ma
+--         (R.NFAction nf)       -> SB $ normalform f s nf
+--         (R.HelpAction)        -> SB $ help
+
+{- formula cassifications -}
+
+classification :: R.Semantics -> String -> Either String Prop
+classification sem s =
+    case sem of
+    R.PC -> classificationPC s
+    R.L3 -> classificationL3 s
+
+classificationPC :: String -> Either String Prop
+classificationPC s =
+    case parse formulaProp "" "" of
+    (Left err) -> Left $ "Classification Propositional Calculus:" ++ show err
+    (Right f) -> Right $ if S.sat PC.pc f
+                         then if S.valid PC.pc f
+                              then Valid
+                              else Sat
+                         else Unsat
+
+-- classificationL3 :: String -> Either String Prop
+classificationL3 = undefined
+
+
+{- -}
+property = undefined
+models = undefined
+normalform = undefined
+help = undefined
 
 
 -- helper functions
-parseExp :: Parser a -> String -> a
-parseExp p s = case parse p "" s of
-    (Right a)     -> a
-    (Left err)    -> error (show err)
-
-
-parseProp = parseExp formulaProp
+parseCLI :: Parser a -> String -> Either ParseError a
+parseCLI p = parse p "Command Line"
 
 
 {- ToDo:

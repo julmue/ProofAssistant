@@ -156,8 +156,8 @@ requestConstructor args = Request
     ,   getReqHelp          = getHelp args
     }
 
-taskConstructor :: Request -> [Task]
-taskConstructor req =
+tasksConstructor :: Request -> [Task]
+tasksConstructor req =
     let f = getReqFormula req
     in  [ Task f s ClassifyAction   | s <- (getReqSemantics req), getReqClassify req] ++
         [ Task f s (PropAction p)   | s <- (getReqSemantics req), p <- (getReqProps req) ] ++
@@ -165,3 +165,5 @@ taskConstructor req =
         [ Task f s (NFAction nf)    | s <- (getReqSemantics req), nf <- (getReqNormalForms req) ] ++
         [ Task [] PC HelpAction | (getReqHelp req) ]
 
+toTasks :: [Arg] -> [Task]
+toTasks = tasksConstructor . requestConstructor
