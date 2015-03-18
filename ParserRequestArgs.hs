@@ -98,7 +98,7 @@ formula =
     many1 (noneOf delimiterFormula ) >>= \f ->
     oneOf delimiterFormula  >>
     return f
-    where delimiterFormula = "\'"
+    where delimiterFormula = "<<"
 
 {- parser for classification queries -}
 classify :: Parser Classify

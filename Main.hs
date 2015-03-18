@@ -4,6 +4,7 @@
 
 import Control.Applicative
 import Control.Monad
+import Data.List (unwords)
 import System.Environment (getArgs)
 
 import qualified Formula as F
@@ -28,11 +29,12 @@ data Prop
     deriving (Show, Eq)
 
 main :: IO ()
-main =
-    concat <$> getArgs >>= \args ->
-    case parse requestArgs "cmdline" args of
-    (Left err)      -> error $ "Error parsing command line arguments: " ++ (show err)
-    (Right args)    -> mapM_ print (fmap processTask $ R.toTasks args)
+main = getArgs >>= print
+
+--     \args ->
+--     case parse requestArgs "cmdline" args of
+--     (Left err)          -> error $ "Error parsing command line arguments: " ++ (show err)
+--     (Right argList)     -> print argList
 
 
 -- processTasks = fmap processTasks
