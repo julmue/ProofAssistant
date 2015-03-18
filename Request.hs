@@ -17,107 +17,151 @@ import qualified Formula as F
     + formula ('f'):
         + <String>
         * default ""
+    + classification request ('c')
+        (checks if formula is valid, sat, unsat under given semantics.)
     + property queries ('p'):
-        * default: classify
-        + classify:    tautology, neutrality, contradiction
         + valid:       validity check
         + sat:         satisfiability check
         + unsat:       unsatisfiability check
-        + model:       one model
-        + models:      all models
+    + model queries ('m'):
+        + model:       one model (if any)
+        + models:      all models (if any)
     + normal forms ('n'):
         + cnf,
-        + dn
+        + dnf,
         * default: CNF
     + help ('h')
-
-    probably best to put that all in a record;
-    some kind of "request objects" ... then a request parser could be implemened
-
 -}
 
-
--- which typeclass could be best used as constrained?
--- Parseable or Evaluatable or a combination of both?
-
 data Request = Request {
-    getReqSemantics        :: [Semantics],
-    getReqFormula          :: String,
-    getReqQueries          :: [PQuery],
-    getReqNormalforms      :: [Normalform],
-    getReqHelp             :: Bool
-} deriving Show
+    getReqFormula           :: String,
+    getReqSemantics         :: [Semantics],
+    getReqClassify          :: Bool,
+    getReqProps             :: [Prop],
+    getReqModels            :: [Model],
+    getReqNormalForms       :: [NormalForm],
+    getReqHelp              :: Bool
+} deriving (Show, Eq)
 
 data Task = Task {
-    getTaskSemantics    :: String,
     getTaskFormula      :: String,
+    getTaskSemantics    :: Semantics,
     getTaskAction       :: Action
-}
+} deriving (Show, Eq)
 
-data Action = PQuery | Normalform deriving (Show,Eq)
+data Action
+    = ClassifyAction
+    | PropAction Prop
+    | ModelAction Model
+    | NFAction  NormalForm
+    | HelpAction
+    deriving (Show,Eq)
 
-data PQuery = Classify | Valid | Sat | Unsat | Model | Models deriving (Show,Eq)
+-- the different form of queries are classified by their answer types:
+-- classify :: FProp = Valid, Sat, Unsat
+-- sat, unsat, valid :: Bool
+-- model, models :: [Model]
+-- normalform :: Formula
 
-data Normalform = CNF | DNF deriving (Show,Eq)
+data Semantics
+    = PC
+    | L3
+    deriving (Show,Eq)
+
+data Class = Class deriving (Show,Eq)
+
+data Prop
+    = Valid
+    | Sat
+    | Unsat
+    deriving (Show,Eq)
+
+data Model
+    = Model
+    | Models
+    deriving (Show,Eq)
+
+data NormalForm
+    = CNF
+    | DNF
+    deriving (Show,Eq)
 
 data Help = Help deriving (Show,Eq)
 
-data Semantics = PC | L3 deriving (Show,Eq)
-
 data Arg
-    = S [Semantics]
-    | P [PQuery]
-    | F String
-    | N [Normalform]
-    | H Help
+    = ArgFormula String
+    | ArgSemantics [Semantics]
+    | ArgProps [Prop]
+    | ArgClass -- classification request
+    | ArgModel Model
+    | ArgNFs [NormalForm]
+    | ArgHelp -- help request
     deriving (Show,Eq)
-
-nubArgs :: Arg -> Arg
-nubArgs arg = case arg of
-    S s -> S $ nub s
-    P q -> P $ nub q
-    N n -> N $ nub n
-    a   -> a
-
--- not very elegant ...
--- there has to be a better solution
-getSemantics :: [Arg] -> [Semantics]
-getSemantics args = case args of
-    ((S s):as)  -> s ++ getSemantics as
-    (_:as)      -> getSemantics as
-    []          -> []
-
-getQueries :: [Arg] -> [PQuery]
-getQueries args = case args of
-    ((P q):as)  -> q ++ getQueries as
-    (_:as)      -> getQueries as
-    []          -> []
 
 -- this is not so slick either ...
 -- there should be only one formula ...
 getFormula :: [Arg] -> String
 getFormula args = case args of
-    ((F f):_)   -> f
-    (_:as)      -> getFormula as
-    []          -> []
+    ((ArgFormula f):_)   -> f
+    (_:as)                  -> getFormula as
+    []                      -> []
 
-getNormalforms :: [Arg] -> [Normalform]
-getNormalforms args = case args of
-    ((N n):as)  -> n ++ getNormalforms as
-    (_:as)      -> getNormalforms as
-    []          -> []
+-- not very elegant ...
+-- there has to be a better solution
+getSemantics :: [Arg] -> [Semantics]
+getSemantics args = case args of
+    ((ArgSemantics s):as)   -> s ++ getSemantics as
+    (_:as)                  -> getSemantics as
+    []                      -> []
+
+getClassify :: [Arg] -> Bool
+getClassify args = case args of
+    (ArgClass :_)   -> True
+    (_:as)          -> getClassify as
+    []              -> False
+
+getProps :: [Arg] -> [Prop]
+getProps args = case args of
+    ((ArgProps p):as)   -> p ++ getProps as
+    (_:as)              -> getProps as
+    []                  -> []
+
+getModels :: [Arg] -> [Model]
+getModels args = case args of
+    ((ArgModel Model) :as)  -> [Model] ++ getModels as
+    ((ArgModel Models) :as) -> [Models] ++ getModels as
+    (_:as)          -> getModels as
+    []              -> []
+
+getNormalForms :: [Arg] -> [NormalForm]
+getNormalForms args = case args of
+    ((ArgNFs n):as)     -> n ++ getNormalForms as
+    (_:as)              -> getNormalForms as
+    []                  -> []
 
 getHelp :: [Arg] -> Bool
 getHelp args = case args of
-    ((H Help):_)    -> True
+    (ArgHelp:_)     -> True
     (_:as)          -> getHelp as
     []              -> False
 
--- requestConstructor :: [Arg] -> Request
+requestConstructor :: [Arg] -> Request
 requestConstructor args = Request
-    {   getReqSemantics     = nub $ getSemantics args
-    ,   getReqFormula       = getFormula args
-    ,   getReqQueries       = nub $ getQueries args
-    ,   getReqNormalforms   = nub $ getNormalforms args
+    {   getReqFormula       = getFormula args
+    ,   getReqClassify      = getClassify args
+    ,   getReqSemantics     = nub $ getSemantics args
+    ,   getReqProps         = nub $ getProps args
+    ,   getReqModels        = nub $ getModels args
+    ,   getReqNormalForms   = nub $ getNormalForms args
     ,   getReqHelp          = getHelp args
     }
+
+taskConstructor :: Request -> [Task]
+taskConstructor req =
+    let f = getReqFormula req
+    in  [ Task f s ClassifyAction   | s <- (getReqSemantics req), getReqClassify req] ++
+        [ Task f s (PropAction p)   | s <- (getReqSemantics req), p <- (getReqProps req) ] ++
+        [ Task f s (ModelAction m)  | s <- (getReqSemantics req), m <- (getReqModels req) ] ++
+        [ Task f s (NFAction nf)    | s <- (getReqSemantics req), nf <- (getReqNormalForms req) ] ++
+        [ Task [] PC HelpAction | (getReqHelp req) ]
+

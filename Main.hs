@@ -1,25 +1,39 @@
-import Semantics
-import Prop
-import PropSemanticsPC
-import ParserProp
-import Request
-import qualified ParserRequestArguments as Args
 import qualified Formula as F
 import FormulaPCLaws
-import ParserFormula
 import Parser
-
+import ParserFormula
+import ParserProp
+import qualified ParserRequestArguments as Args
 import PrettyPrint
+import Prop
+import PropSemanticsPC
+import Request
+import Semantics
 
 import Text.Parsec
 import Text.Parsec.String
 
 
-
-
 main :: IO ()
 main = undefined
 
+data Prop
+    = Valid
+    | Sat
+    | Unsat
+    deriving (Show, Eq)
+
+processTask :: Task -> IO ()
+processTask t =
+    let f = getTaskFormula t
+        s = getTaskSemantics t
+    in  case getTaskaction t of
+        (PQAction pqa)  -> processPQAction f s pqa
+        (NfAction nfa)  -> processNfAction f s nfa
+        (HAction)       -> getHelp
+
+processPQAction :: String -> Semantics ->
+processPQAction f s pqa
 
 
 -- helper functions
