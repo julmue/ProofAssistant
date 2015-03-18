@@ -100,56 +100,58 @@ formula =
     return f
     where delimiterFormula = "\'"
 
-{- parser for property queries -}
-classify :: Parser PQuery
+{- parser for classification queries -}
+classify :: Parser Classify
 classify =
     reserved "classify" >>
     whiteSpace >>
     return Classify
 
-valid :: Parser PQuery
+
+{- parser for property queries -}
+valid :: Parser Prop
 valid =
     reserved "valid" >>
     whiteSpace >>
     return Valid
 
-sat :: Parser PQuery
+sat :: Parser Prop
 sat =
     reserved "sat" >>
     whiteSpace >>
     return Sat
 
-unsat :: Parser PQuery
+unsat :: Parser Prop
 unsat =
     reserved "unsat" >>
     whiteSpace >>
     return Unsat
 
-model :: Parser PQuery
-model =
-    reserved "model" >>
+prop :: Parser Prop
+prop =  try sat
+    <|> try unsat
+    <|> valid
+
+props :: Parser [Prop]
+props =
+    reserved "-p" >>
+    whiteSpace >>
+    many1 prop
+
+{- parser for model queries -}
+m :: Parser Model
+m = reserved "model" >>
     whiteSpace >>
     return Model
 
-models :: Parser PQuery
-models =
-    reserved "models" >>
-    whiteSpace >>
-    return Models
+ms :: Parser Model
+ms =    reserved "models" >>
+        whiteSpace >>
+        return Models
 
-pquery :: Parser PQuery
-pquery =
-        try sat
-    <|> try unsat
-    <|> try valid
-    <|> try models
-    <|> model
-
-pqueries :: Parser [PQuery]
-pqueries =
-    reserved "-q" >>
-    whiteSpace >>
-    many1 pquery
+model :: Parser Model
+model = try ms
+    <|> m
 
 {- Parser for help request -}
 help :: Parser Help
@@ -159,23 +161,23 @@ help =
     return Help
 
 {- Parser for normal forms -}
-cnf :: Parser Normalform
+cnf :: Parser NormalForm
 cnf =
     reserved "cnf" >>
     whiteSpace >>
     return CNF
 
-dnf :: Parser Normalform
+dnf :: Parser NormalForm
 dnf =
     reserved "dnf" >>
     whiteSpace >>
     return DNF
 
-normalform :: Parser Normalform
+normalform :: Parser NormalForm
 normalform =
     dnf <|> cnf
 
-normalforms :: Parser [Normalform]
+normalforms :: Parser [NormalForm]
 normalforms =
     reserved "-n" >>
     whiteSpace >>
@@ -184,11 +186,13 @@ normalforms =
 {- Parser for request arguments -}
 argExpr :: Parser Arg
 argExpr=
-        try (sems >>= \ss -> whiteSpace >> (return $ S ss))
-    <|> try (pqueries >>= \qs -> whiteSpace >> (return $ P qs))
-    <|> try (formula >>= \f -> whiteSpace >> (return $ F f))
-    <|> try (normalforms >>= \ns -> whiteSpace >> (return $ NF ns))
-    <|> (help >>= \h -> whiteSpace >> (return $ H h))
+        try (formula >>= \f -> whiteSpace >> (return $ ArgFormula f))
+    <|> try (sems >>= \ss -> whiteSpace >> (return $ ArgSemantics ss))
+    <|> try (classify >> (return ArgClassify))
+    <|> try (props >>= \qs -> whiteSpace >> (return $ ArgProps qs))
+    <|> try (model >>= \ms -> whiteSpace >> (return $ ArgModel ms))
+    <|> try (normalforms >>= \ns -> whiteSpace >> (return $ ArgNFs ns))
+    <|> (help >> whiteSpace >> (return ArgHelp))
 
 requestArgs :: Parser [Arg]
 requestArgs = many1 argExpr

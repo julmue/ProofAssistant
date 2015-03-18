@@ -68,7 +68,7 @@ data Semantics
     | L3
     deriving (Show,Eq)
 
-data Class = Class deriving (Show,Eq)
+data Classify = Classify deriving (Show,Eq)
 
 data Prop
     = Valid
@@ -92,7 +92,7 @@ data Arg
     = ArgFormula String
     | ArgSemantics [Semantics]
     | ArgProps [Prop]
-    | ArgClass -- classification request
+    | ArgClassify -- classification request
     | ArgModel Model
     | ArgNFs [NormalForm]
     | ArgHelp -- help request
@@ -116,9 +116,9 @@ getSemantics args = case args of
 
 getClassify :: [Arg] -> Bool
 getClassify args = case args of
-    (ArgClass :_)   -> True
-    (_:as)          -> getClassify as
-    []              -> False
+    (ArgClassify :_)    -> True
+    (_:as)              -> getClassify as
+    []                  -> False
 
 getProps :: [Arg] -> [Prop]
 getProps args = case args of
