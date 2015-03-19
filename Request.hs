@@ -93,27 +93,27 @@ data Help = Help deriving (Show,Eq)
 
 type Flags = [String]
 
-flagFormula = ["-f","--formula"]
-flagSemantics = ["-s","--semantics"]
-flagClassification = ["-c","--classify"]
-flagProperty = ["-p","--properties"]
-flagModell = ["-m","-ms","--models","--model"]
-flagNormalForm = ["-n","--normalform"]
-flagHelp = ["-h","--help"]
+-- flagFormula = ["-f","--formula"]
+-- flagSemantics = ["-s","--semantics"]
+-- flagClassification = ["-c","--classify"]
+-- flagProperty = ["-p","--properties"]
+-- flagModell = ["-m","-ms","--models","--model"]
+-- flagNormalForm = ["-n","--normalform"]
+-- flagHelp = ["-h","--help"]
 
-flags = flagFormula ++ flagSemantics ++ flagClassification ++ flagProperty ++
-        flagModell ++ flagNormalForm ++ flagHelp
+-- flags = flagFormula ++ flagSemantics ++ flagClassification ++ flagProperty ++
+--         flagModell ++ flagNormalForm ++ flagHelp
 
-data Arg = Flag String | Option String deriving (Show,Eq)
-
-classifyArgs :: Flags -> String -> Arg
-classifyArgs fl = \s -> if s `elem` fl
-                        then Flag s
-                        else Option s
-
--- groupArgs // there should be a better name
-groupArgs :: [String] -> [[Arg]]
-groupArgs = (groupBy (==) . fmap (classifyArgs flags))
+-- data Arg = Flag String | Option String deriving (Show,Eq)
+--
+-- classifyArgs :: Flags -> String -> Arg
+-- classifyArgs fl = \s -> if s `elem` fl
+--                         then Flag s
+--                         else Option s
+--
+-- -- groupArgs // there should be a better name
+-- groupArgs :: [String] -> [[Arg]]
+-- groupArgs = (groupBy (==) . fmap (classifyArgs flags))
 
 
 

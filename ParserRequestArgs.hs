@@ -65,11 +65,9 @@ instance Alternative (Parser s) where
         \s0 -> case pa s0 of
             (_, Left _) -> (s0, Right [])
             (s1, Right a) -> case (runParser $ some p) s1 of
-                (_, Left _) -> (s0, Right [])
+                (_, Left _) -> (s1, Right [a])
                 (s2, Right as) -> (s2, Right $ a:as)
 
-
-type ParserArgs a = Parser [String] a
 
 satisfy :: (s -> Bool) -> Parser [s] s
 satisfy f = Parser $
@@ -78,3 +76,38 @@ satisfy f = Parser $
         (s:s1) -> if f s
                   then (s1, Right s)
                   else (s0, Left "Error: did not satisfy")
+
+type ParserTok a = Parser [String] a
+
+oneOf :: [String] -> ParserTok String
+oneOf sl = satisfy (`elem` sl)
+
+noneOf :: [String] -> ParserTok String
+noneOf sl = satisfy $ not . (flip elem) sl
+
+
+flagFormula = ["-f","--formula"]
+flagSemantics = ["-s","--semantics"]
+flagClassification = ["-c","--classify"]
+flagProperty = ["-p","--properties"]
+flagModell = ["-m","-ms","--models","--model"]
+flagNormalForm = ["-n","--normalform"]
+flagHelp = ["-h","--help"]
+
+flags = flagFormula ++ flagSemantics ++ flagClassification ++ flagProperty ++
+        flagModell ++ flagNormalForm ++ flagHelp
+
+-- Parser Formula
+-- scans a stream of argument tokens for flag and flag-options until the next flag
+scanOptions flag flags =
+    ((++) <$> options <*> scanOptions flag flags)
+    <|> options
+    where options = many (noneOf flag) *> oneOf flag *> (many (noneOf flags))
+
+scanFormula = scanOptions flagFormula flags
+--
+--     flagFormula >>
+--     many (noneOf flags) >>= \fs ->
+--     return fs
+
+
