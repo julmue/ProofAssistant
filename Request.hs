@@ -4,33 +4,33 @@ where
 
 -- import Prelude (String,Bool,Show,($),fmap,Eq,(++),Bool)
 
-import Data.List (nub)
+import Data.List (nub,groupBy)
 
 import qualified Formula as F
 
 {- clank
     command line arguments:
-    + semantics ('s'):
+    + semantics ('-s'):
         + pc
         + l3
         * (default: pc)
-    + formula ('f'):
+    + formula ('-f'):
         + <String>
         * default ""
-    + classification request ('c')
+    + classification request ('-c')
         (checks if formula is valid, sat, unsat under given semantics.)
     + property queries ('p'):
         + valid:       validity check
         + sat:         satisfiability check
         + unsat:       unsatisfiability check
-    + model queries ('m'):
+    + model queries ('-m'):
         + model:       one model (if any)
         + models:      all models (if any)
-    + normal forms ('n'):
+    + normal forms ('-n'):
         + cnf,
         + dnf,
         * default: CNF
-    + help ('h')
+    + help ('-h')
 -}
 
 data Request = Request {
@@ -88,82 +88,63 @@ data NormalForm
 
 data Help = Help deriving (Show,Eq)
 
-data Arg
-    = ArgFormula String
-    | ArgSemantics [Semantics]
-    | ArgProps [Prop]
-    | ArgClassify -- classification request
-    | ArgModel Model
-    | ArgNFs [NormalForm]
-    | ArgHelp -- help request
-    deriving (Show,Eq)
 
--- this is not so slick either ...
--- there should be only one formula ...
-getFormula :: [Arg] -> String
-getFormula args = case args of
-    ((ArgFormula f):_)   -> f
-    (_:as)                  -> getFormula as
-    []                      -> []
+{- flags -}
+
+type Flags = [String]
+
+flagFormula = ["-f","--formula"]
+flagSemantics = ["-s","--semantics"]
+flagClassification = ["-c","--classify"]
+flagProperty = ["-p","--properties"]
+flagModell = ["-m","-ms","--models","--model"]
+flagNormalForm = ["-n","--normalform"]
+flagHelp = ["-h","--help"]
+
+flags = flagFormula ++ flagSemantics ++ flagClassification ++ flagProperty ++
+        flagModell ++ flagNormalForm ++ flagHelp
+
+data Arg = Flag String | Option String deriving (Show,Eq)
+
+classifyArgs :: Flags -> String -> Arg
+classifyArgs fl = \s -> if s `elem` fl
+                        then Flag s
+                        else Option s
+
+-- groupArgs // there should be a better name
+groupArgs :: [String] -> [[Arg]]
+groupArgs = (groupBy (==) . fmap (classifyArgs flags))
+
+
+
+
+
+
+
+
+
 
 -- not very elegant ...
--- there has to be a better solution
-getSemantics :: [Arg] -> [Semantics]
-getSemantics args = case args of
-    ((ArgSemantics s):as)   -> s ++ getSemantics as
-    (_:as)                  -> getSemantics as
-    []                      -> []
 
-getClassify :: [Arg] -> Bool
-getClassify args = case args of
-    (ArgClassify :_)    -> True
-    (_:as)              -> getClassify as
-    []                  -> False
-
-getProps :: [Arg] -> [Prop]
-getProps args = case args of
-    ((ArgProps p):as)   -> p ++ getProps as
-    (_:as)              -> getProps as
-    []                  -> []
-
-getModels :: [Arg] -> [Model]
-getModels args = case args of
-    ((ArgModel Model) :as)  -> [Model] ++ getModels as
-    ((ArgModel Models) :as) -> [Models] ++ getModels as
-    (_:as)          -> getModels as
-    []              -> []
-
-getNormalForms :: [Arg] -> [NormalForm]
-getNormalForms args = case args of
-    ((ArgNFs n):as)     -> n ++ getNormalForms as
-    (_:as)              -> getNormalForms as
-    []                  -> []
-
-getHelp :: [Arg] -> Bool
-getHelp args = case args of
-    (ArgHelp:_)     -> True
-    (_:as)          -> getHelp as
-    []              -> False
-
-requestConstructor :: [Arg] -> Request
-requestConstructor args = Request
-    {   getReqFormula       = getFormula args
-    ,   getReqClassify      = getClassify args
-    ,   getReqSemantics     = nub $ getSemantics args
-    ,   getReqProps         = nub $ getProps args
-    ,   getReqModels        = nub $ getModels args
-    ,   getReqNormalForms   = nub $ getNormalForms args
-    ,   getReqHelp          = getHelp args
-    }
-
-tasksConstructor :: Request -> [Task]
-tasksConstructor req =
-    let f = getReqFormula req
-    in  [ Task f s ClassifyAction   | s <- (getReqSemantics req), getReqClassify req] ++
-        [ Task f s (PropAction p)   | s <- (getReqSemantics req), p <- (getReqProps req) ] ++
-        [ Task f s (ModelAction m)  | s <- (getReqSemantics req), m <- (getReqModels req) ] ++
-        [ Task f s (NFAction nf)    | s <- (getReqSemantics req), nf <- (getReqNormalForms req) ] ++
-        [ Task [] PC HelpAction | (getReqHelp req) ]
-
-toTasks :: [Arg] -> [Task]
-toTasks = tasksConstructor . requestConstructor
+-- requestConstructor :: [Arg] -> Request
+-- requestConstructor args = Request
+--     {   getReqFormula       = getFormula args
+--     ,   getReqClassify      = getClassify args
+--     ,   getReqSemantics     = nub $ getSemantics args
+--     ,   getReqProps         = nub $ getProps args
+--     ,   getReqModels        = nub $ getModels args
+--     ,   getReqNormalForms   = nub $ getNormalForms args
+--     ,   getReqHelp          = getHelp args
+--     }
+--
+-- tasksConstructor :: Request -> [Task]
+-- tasksConstructor req =
+--     let f = getReqFormula req
+--     in  [ Task f s ClassifyAction   | s <- (getReqSemantics req), getReqClassify req] ++
+--         [ Task f s (PropAction p)   | s <- (getReqSemantics req), p <- (getReqProps req) ] ++
+--         [ Task f s (ModelAction m)  | s <- (getReqSemantics req), m <- (getReqModels req) ] ++
+--         [ Task f s (NFAction nf)    | s <- (getReqSemantics req), nf <- (getReqNormalForms req) ] ++
+--         [ Task [] PC HelpAction | (getReqHelp req) ]
+--
+-- toTasks :: [Arg] -> [Task]
+-- toTasks = tasksConstructor . requestConstructor
