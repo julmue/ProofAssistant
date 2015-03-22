@@ -29,12 +29,7 @@ data Prop
     deriving (Show, Eq)
 
 main :: IO ()
-main = getArgs >>= print
-
---     \args ->
---     case parse requestArgs "cmdline" args of
---     (Left err)          -> error $ "Error parsing command line arguments: " ++ (show err)
---     (Right argList)     -> print argList
+main = toTasks <$> getArgs >>= print
 
 
 -- processTasks = fmap processTasks

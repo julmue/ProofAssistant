@@ -1,5 +1,6 @@
 module ParserRequestArgs
-    ( requestArgs
+    ( Error,
+      toTasks
     )
 where
 
@@ -112,21 +113,23 @@ flags = flagFormula ++ flagSemantics ++ flagClassification ++ flagProperty ++
 -- can also be used to scan for switches: return (Left err) if a flag is not found
 -- there should be a way to distinguish between flags with not arguments (switches
 -- and flags that take arguments (Options)
+scanOptions :: [String] -> [String] -> Parser [String] [String]
 scanOptions flags flag =
     ((++) <$> options flags flag <*> scanOptions flags flag)
     <|> options flags flag
     where options flags flag = many (noneOf flag) *> oneOf flag *> (many (noneOf flags))
 
+
 scanWithFlags       = scanOptions flags
 
 -- scanners for the flags
 -- switches return Left err on failure
-scanFormula         = scanWithFlags flagFormula
+scanFormulas        = scanWithFlags flagFormula
 scanSemantics       = scanWithFlags flagSemantics
 scanClassification  = scanWithFlags flagClassification
-scanProperty        = scanWithFlags flagProperty
-scanModel           = scanWithFlags flagModel
-scanNormalForm      = scanWithFlags flagNormalForm
+scanProperties      = scanWithFlags flagProperty
+scanModels          = scanWithFlags flagModel
+scanNormalForms     = scanWithFlags flagNormalForm
 scanHelp            = scanWithFlags flagHelp
 
 toSemantics :: String -> Either Error Semantics
@@ -142,29 +145,87 @@ toProp s = case s of
     "unsat" -> Right Unsat
     x       -> Left $ "Error(toProp): " ++ x ++ " is not a known porperty!"
 
-toModel :: String -> Either Error Model
-toModel s = case s of
-    "model"     -> Right Model
-    "models"    -> Right Models
-    x           -> Left $ "Error(toModell): " ++ x ++ " unknown option!"
-
 toNormalForms :: String -> Either Error NormalForm
 toNormalForms s = case s of
     "cnf"   -> Right CNF
     "dnf"   -> Right DNF
     x       -> Left $ "Error(toNormalForm): " ++ x ++ " is not a known normal form!"
 
+-- Maybe this step should be split in two ...
 
--- requestConstructor :: [String] -> Either Error Request
-requestConstructor s =
-    let fms = getArgs scanFormula pure s
-        sms = getArgs scanSemantics toSemantics s
-    in  undefined
+getFormulas :: [String] -> Either Error [String]
+getFormulas s = case getArgs scanFormulas s of
+    (Left _)        -> Left $ "Error(getFormulas): No formulas specified"
+    (Right [])      -> Left $ "Error(getFormulas): No formulas specified"
+    (Right fs)      -> (Right fs)
+
+getSemantics :: [String] -> Either Error [Semantics]
+getSemantics s = case getArgs scanSemantics s of
+    (Left _)        -> Left $ "Error(getSemantics): No semantics specified"
+    (Right [])      -> Left $ "Error(getSemantics): No semantics specified"
+    (Right ss)      -> sequence $ fmap toSemantics ss
+
+getClassification :: [String] -> Either Error Bool
+getClassification s = case getArgs scanClassification s of
+    (Left _)        -> Right False
+    (Right [])      -> Right True
+    (Right x)       -> Left $ "Error(getClassification): unknown Argument(s): " ++ (concat $ fmap show x)
+
+getProps :: [String] -> Either Error [Prop]
+getProps s = case getArgs scanProperties s of
+    (Left _)        -> Right []
+    (Right x)       -> sequence $ fmap toProp x
+
+getModels :: [String] -> Either Error Bool
+getModels s = case getArgs scanModels s of
+    (Left _)        -> Right False
+    (Right [])      -> Right True
+    (Right x)       -> Left $ "Error(getModels): unknown Argument(s): " ++ (concat $ fmap show x)
+
+getNormalForms :: [String] -> Either Error [NormalForm]
+getNormalForms s = case getArgs scanNormalForms s of
+    (Left _)        -> Right []
+    (Right x)       -> sequence $ fmap toNormalForms x
+
+getHelp :: [String] -> Either Error Bool
+getHelp s = case getArgs scanHelp s of
+    (Left _)        -> Right False
+    (Right [])      -> Right True
+    (Right _)       -> Right True
+
+getArgs :: Parser s a -> s -> Either Error a
+getArgs p s = snd $ runParser p s
 
 
-getArgs :: Parser s [a] -> (a -> Either Error b) -> s -> Either Error [b]
-getArgs p f s = join $ sequence <$> (fmap . fmap) f (snd $ runParser p s)
+type Args = [String]
 
 
+requestConstructor :: Args -> Either Error Request
+requestConstructor args =
+    pure Request
+    <*> getFormulas args
+    <*> getSemantics args
+    <*> getClassification args
+    <*> getProps args
+    <*> getModels args
+    <*> getNormalForms args
+    <*> getHelp args
 
 
+tasksConstructor :: Request -> [Task]
+tasksConstructor req =
+    let fs = getReqFormulas req
+        ss = getReqSemantics req
+        ps = getReqProps req
+        nfs = getReqNormalForms req
+    in  [ Task f s ClassifyAction   | f <- fs, s <- ss, getReqClassify req] ++
+        [ Task f s (PropAction p)   | f <- fs, s <- ss, p <- ps ] ++
+        [ Task f s ModelAction      | f <- fs, s <- ss, getReqModels req ] ++
+        [ Task f s (NFAction nf)    | f <- fs, s <- ss, nf <- nfs ] ++
+        [ Task [] PC HelpAction     | (getReqHelp req) ]
+
+-- toTasks :: Args -> [Task]
+toTasks args = case tasksConstructor <$> requestConstructor args of
+    err@(Left _)    -> err
+    (Right [])      -> Right $ [ Task [] PC HelpAction ]
+    x               -> x

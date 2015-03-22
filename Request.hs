@@ -4,6 +4,7 @@ where
 
 -- import Prelude (String,Bool,Show,($),fmap,Eq,(++),Bool)
 
+import Control.Applicative
 import Data.List (nub,groupBy)
 
 import qualified Formula as F
@@ -34,11 +35,11 @@ import qualified Formula as F
 -}
 
 data Request = Request {
-    getReqFormula           :: [String],
+    getReqFormulas          :: [String],
     getReqSemantics         :: [Semantics],
     getReqClassify          :: Bool,
     getReqProps             :: [Prop],
-    getReqModels            :: [Model],
+    getReqModels            :: Bool,
     getReqNormalForms       :: [NormalForm],
     getReqHelp              :: Bool
 } deriving (Show, Eq)
@@ -52,7 +53,7 @@ data Task = Task {
 data Action
     = ClassifyAction
     | PropAction Prop
-    | ModelAction Model
+    | ModelAction
     | NFAction  NormalForm
     | HelpAction
     deriving (Show,Eq)
@@ -68,17 +69,10 @@ data Semantics
     | L3
     deriving (Show,Eq)
 
-data Classify = Classify deriving (Show,Eq)
-
 data Prop
     = Valid
     | Sat
     | Unsat
-    deriving (Show,Eq)
-
-data Model
-    = Model
-    | Models
     deriving (Show,Eq)
 
 data NormalForm
@@ -87,55 +81,3 @@ data NormalForm
     deriving (Show,Eq)
 
 data Help = Help deriving (Show,Eq)
-
-
-{- flags -}
-
-type Flags = [String]
-
-
-
--- data Arg = Flag String | Option String deriving (Show,Eq)
---
--- classifyArgs :: Flags -> String -> Arg
--- classifyArgs fl = \s -> if s `elem` fl
---                         then Flag s
---                         else Option s
---
--- -- groupArgs // there should be a better name
--- groupArgs :: [String] -> [[Arg]]
--- groupArgs = (groupBy (==) . fmap (classifyArgs flags))
-
-
-
-
-
-
-
-
-
-
--- not very elegant ...
-
--- requestConstructor :: [Arg] -> Request
--- requestConstructor args = Request
---     {   getReqFormula       = getFormula args
---     ,   getReqClassify      = getClassify args
---     ,   getReqSemantics     = nub $ getSemantics args
---     ,   getReqProps         = nub $ getProps args
---     ,   getReqModels        = nub $ getModels args
---     ,   getReqNormalForms   = nub $ getNormalForms args
---     ,   getReqHelp          = getHelp args
---     }
---
--- tasksConstructor :: Request -> [Task]
--- tasksConstructor req =
---     let f = getReqFormula req
---     in  [ Task f s ClassifyAction   | s <- (getReqSemantics req), getReqClassify req] ++
---         [ Task f s (PropAction p)   | s <- (getReqSemantics req), p <- (getReqProps req) ] ++
---         [ Task f s (ModelAction m)  | s <- (getReqSemantics req), m <- (getReqModels req) ] ++
---         [ Task f s (NFAction nf)    | s <- (getReqSemantics req), nf <- (getReqNormalForms req) ] ++
---         [ Task [] PC HelpAction | (getReqHelp req) ]
---
--- toTasks :: [Arg] -> [Task]
--- toTasks = tasksConstructor . requestConstructor
