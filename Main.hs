@@ -29,7 +29,12 @@ data Prop
     deriving (Show, Eq)
 
 main :: IO ()
-main = toTasks <$> getArgs >>= print
+-- main = toTasks <$> getArgs >>= print
+main = do
+    args <- getArgs
+    case toTasks args of
+        (Left err) -> print err
+        (Right tasks) -> mapM_ print $ fmap processTask tasks
 
 
 -- processTasks = fmap processTasks
@@ -59,7 +64,7 @@ classification sem s =
 
 classificationPC :: String -> Either String Prop
 classificationPC s =
-    case parse formulaProp "" "" of
+    case parse formulaProp "" s of
     (Left err) -> Left $ "Classification Propositional Calculus:" ++ show err
     (Right f) -> Right $ if S.sat PC.pc f
                          then if S.valid PC.pc f
