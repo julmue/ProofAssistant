@@ -34,7 +34,7 @@ import qualified Formula as F
 -}
 
 data Request = Request {
-    getReqFormula           :: String,
+    getReqFormula           :: [String],
     getReqSemantics         :: [Semantics],
     getReqClassify          :: Bool,
     getReqProps             :: [Prop],
@@ -93,16 +93,7 @@ data Help = Help deriving (Show,Eq)
 
 type Flags = [String]
 
--- flagFormula = ["-f","--formula"]
--- flagSemantics = ["-s","--semantics"]
--- flagClassification = ["-c","--classify"]
--- flagProperty = ["-p","--properties"]
--- flagModell = ["-m","-ms","--models","--model"]
--- flagNormalForm = ["-n","--normalform"]
--- flagHelp = ["-h","--help"]
 
--- flags = flagFormula ++ flagSemantics ++ flagClassification ++ flagProperty ++
---         flagModell ++ flagNormalForm ++ flagHelp
 
 -- data Arg = Flag String | Option String deriving (Show,Eq)
 --
