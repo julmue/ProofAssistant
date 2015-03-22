@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -XExistentialQuantification #-}
 
--- {-# OPTIONS_GHC -Wall #-}
+{-- -# OPTIONS_GHC -Wall #-}
 
 import Control.Applicative
 import Control.Monad
@@ -22,12 +22,6 @@ import qualified Semantics as S
 import Text.Parsec
 import Text.Parsec.String
 
-data Prop
-    = Valid
-    | Sat
-    | Unsat
-    deriving (Show, Eq)
-
 main :: IO ()
 -- main = toTasks <$> getArgs >>= print
 main = do
@@ -37,11 +31,19 @@ main = do
         (Right tasks) -> mapM_ print $ fmap processTask tasks
 
 
--- processTasks = fmap processTasks
+
+-- some helper functions that should get sourced out to their own files at some point ...
 data ShowBox = forall s. Show s => SB s
 
 instance Show ShowBox where
     show (SB c) = show c
+
+data Prop
+    = Valid
+    | Sat
+    | Unsat
+    deriving (Show, Eq)
+
 
 processTask :: R.Task -> ShowBox
 processTask t =
@@ -52,7 +54,7 @@ processTask t =
 --         (R.PropAction pa)     -> SB $ property f s pa
 --         (R.ModelAction ma)    -> SB $ models f s ma
 --         (R.NFAction nf)       -> SB $ normalform f s nf
---         (R.HelpAction)        -> SB $ help
+        (R.HelpAction)        -> SB $ "help"
 
 {- formula cassifications -}
 
@@ -72,7 +74,7 @@ classificationPC s =
                               else Sat
                          else Unsat
 
--- classificationL3 :: String -> Either String Prop
+classificationL3 :: String -> Either String Prop
 classificationL3 = undefined
 
 
@@ -81,11 +83,6 @@ property = undefined
 models = undefined
 normalform = undefined
 help = undefined
-
-
--- helper functions
-parseCLI :: Parser a -> String -> Either ParseError a
-parseCLI p = parse p "Command Line"
 
 
 {- ToDo:
