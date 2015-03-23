@@ -3,11 +3,13 @@
 module ParserRequestArgs
     ( Error,
       toTasks
-    )
-where
+    ) where
 
-import Control.Applicative
-import Control.Monad
+import Control.Applicative ( Applicative
+                           , Alternative
+                           , (<$>), (<*>), (*>), (<|>)
+                           , pure, empty, many, some
+                           )
 
 import Request
 
@@ -17,9 +19,10 @@ import Request
 -}
 
 type Error = String
+type Args = [String]
+type ParserTok a = Parser [String] a
 
 newtype Parser s a = Parser { runParser :: s -> (s, Either Error a) }
-
 
 instance Functor (Parser s) where
     -- fmap :: (a -> b) -> Parser a -> Parser b
@@ -27,7 +30,6 @@ instance Functor (Parser s) where
         \s0 -> case pa s0 of
             (_, Left err) -> (s0, Left err)
             (s1, Right a) -> (s1, Right $ f a)
-
 
 instance Applicative (Parser s) where
     -- pure :: a -> (Parser s) a
@@ -41,7 +43,6 @@ instance Applicative (Parser s) where
                 (_, Left err) -> (s0, Left err)
                 (s2, Right a) -> (s2, Right $ fab a)
 
-
 instance Alternative (Parser s) where
     -- empty :: (Parser s) a
     empty = Parser $ \s0 -> (s0, Left "empty")
@@ -51,14 +52,14 @@ instance Alternative (Parser s) where
             resp1@(_, Right _) -> resp1
             (_, Left _) -> case pa2 s0 of
                 resp2@(_, Right _) -> resp2
-                errp2@(_, Left err) -> (s0, Left err)
+                (_, Left err) -> (s0, Left err)
     -- some: 1 or more
     -- some :: (Parser s) a -> (Parser s) [a]
     some p@(Parser pa) = Parser $
         \s0 -> case pa s0 of
             (_, Left err) -> (s0, Left err)
             (s1, Right a) -> case (runParser $ many p) s1 of
-                (_, Left err) -> (s1, Right [a])
+                (_, Left _) -> (s1, Right [a])
                 (s2, Right as) -> (s2, Right $ a:as)
     -- many: 0 or more
     -- many :: (Parser s) a -> (Parser s) [a]
@@ -87,23 +88,34 @@ satisfy f = Parser $
                   then (s1, Right s)
                   else (s0, Left "Error: did not satisfy")
 
-type ParserTok a = Parser [String] a
-
 oneOf :: [String] -> ParserTok String
 oneOf sl = satisfy (`elem` sl)
 
 noneOf :: [String] -> ParserTok String
 noneOf sl = satisfy $ not . flip elem sl
 
-
+flagFormula :: [[Char]]
 flagFormula = ["-f","--formula"]
+
+flagSemantics :: [[Char]]
 flagSemantics = ["-s","--semantics"]
+
+flagClassification :: [[Char]]
 flagClassification = ["-c","--classify"]
+
+flagProperty :: [[Char]]
 flagProperty = ["-p","--properties"]
+
+flagModel :: [[Char]]
 flagModel = ["-m","-ms","--models","--model"]
+
+flagNormalForm :: [[Char]]
 flagNormalForm = ["-n","--normalform"]
+
+flagHelp :: [[Char]]
 flagHelp = ["-h","--help"]
 
+flags :: [[Char]]
 flags = flagFormula ++ flagSemantics ++ flagClassification ++ flagProperty ++
         flagModel ++ flagNormalForm ++ flagHelp
 
@@ -113,23 +125,36 @@ flags = flagFormula ++ flagSemantics ++ flagClassification ++ flagProperty ++
 -- there should be a way to distinguish between flags with not arguments (switches
 -- and flags that take arguments (Options)
 scanOptions :: [String] -> [String] -> Parser [String] [String]
-scanOptions flags flag =
-    ((++) <$> options flags flag <*> scanOptions flags flag)
-    <|> options flags flag
-    where options flags flag = many (noneOf flag) *> oneOf flag *> many (noneOf flags)
+scanOptions flgs flg =
+    ((++) <$> options flgs flg <*> scanOptions flgs flg)
+    <|> options flgs flg
+    where options fls fl = many (noneOf fl) *> oneOf fl *> many (noneOf fls)
 
-
-scanWithFlags       = scanOptions flags
+scanWithFlags :: [String] -> Parser [String] [String]
+scanWithFlags = scanOptions flags
 
 -- scanners for the flags
 -- switches return Left err on failure
-scanFormulas        = scanWithFlags flagFormula
-scanSemantics       = scanWithFlags flagSemantics
-scanClassification  = scanWithFlags flagClassification
-scanProperties      = scanWithFlags flagProperty
-scanModels          = scanWithFlags flagModel
-scanNormalForms     = scanWithFlags flagNormalForm
-scanHelp            = scanWithFlags flagHelp
+scanFormulas :: Parser [String] [String]
+scanFormulas = scanWithFlags flagFormula
+
+scanSemantics :: Parser [String] [String]
+scanSemantics = scanWithFlags flagSemantics
+
+scanClassification :: Parser [String] [String]
+scanClassification = scanWithFlags flagClassification
+
+scanProperties :: Parser [String] [String]
+scanProperties = scanWithFlags flagProperty
+
+scanModels :: Parser [String] [String]
+scanModels = scanWithFlags flagModel
+
+scanNormalForms :: Parser [String] [String]
+scanNormalForms = scanWithFlags flagNormalForm
+
+scanHelp :: Parser [String] [String]
+scanHelp = scanWithFlags flagHelp
 
 toSemantics :: String -> Either Error SemanticsReq
 toSemantics s = case s of
@@ -198,10 +223,6 @@ getHelpReqs s = case getArgs scanHelp s of
 getArgs :: Parser s a -> s -> Either Error a
 getArgs p s = snd $ runParser p s
 
-
-type Args = [String]
-
-
 requestConstructor :: Args -> Either Error Request
 requestConstructor args =
     pure Request
@@ -226,7 +247,7 @@ tasksConstructor req =
         [ Task f s (NFAction nf)        | f <- fs, s <- ss, nf <- nfs ] ++
         [ Task [] PCReq HelpAction      | getReqHelp req ]
 
--- toTasks :: Args -> [Task]
+toTasks :: Args -> Either Error [Task]
 toTasks args = case tasksConstructor <$> requestConstructor args of
     err@(Left _)    -> err
     (Right [])      -> Right [ Task [] PCReq HelpAction ]
