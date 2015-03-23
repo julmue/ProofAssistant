@@ -93,7 +93,8 @@ semantics = Semantics {
     models = modelsLP,
     valid = validLP,
     sat = satLP,
-    unsat = unsatLP
+    unsat = unsatLP,
+    entails = undefined
 }
 
 

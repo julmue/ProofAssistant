@@ -33,7 +33,8 @@ data Semantics a b = Semantics {
     models :: Formula a -> [b],
     valid :: Formula a -> Bool,
     sat :: Formula a -> Bool,
-    unsat :: Formula a -> Bool
+    unsat :: Formula a -> Bool,
+    entails :: [Formula a] -> Formula a -> Bool
 }
 
 -- interpretation / assignment

@@ -95,7 +95,8 @@ semantics = Semantics {
     models = modelsRM,
     valid = validRM,
     sat = satRM,
-    unsat = unsatRM
+    unsat = unsatRM,
+    entails = undefined
 }
 
 

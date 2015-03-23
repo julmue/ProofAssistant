@@ -93,7 +93,8 @@ semantics = Semantics {
     models = modelsL3,
     valid = validL3,
     sat = satL3,
-    unsat = unsatL3
+    unsat = unsatL3,
+    entails = undefined
 }
 
 

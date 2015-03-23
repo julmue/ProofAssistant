@@ -82,10 +82,24 @@ satPC = P.not . unsatPC
 unsatPC :: Formula Prop -> Bool
 unsatPC = null . modelsPC
 
+entailsPC :: [Formula Prop] -> Formula Prop -> Bool
+entailsPC fs f = case fs of
+    [] -> validPC f
+    _ -> validPC $ Imp (fullAnd fs) f
+
+
+-- this should definitly be in the Formula Module!
+fullAnd :: [Formula a] -> Formula a
+fullAnd fs = case fs of
+    []  -> error "Error(fullAnd): empty list of Formulas"
+    [f] -> f
+    (hf:tf) -> And hf $ fullAnd tf
+
 semantics :: Semantics Prop (Prop -> V)
 semantics = Semantics {
     models = modelsPC,
     valid = validPC,
     sat = satPC,
-    unsat = unsatPC
+    unsat = unsatPC,
+    entails = entailsPC
 }

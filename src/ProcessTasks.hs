@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wall -Werror #-}
+
 module ProcessTasks (
     processTasks
     ) where
@@ -6,7 +8,6 @@ import Text.Parsec (parse)
 
 import Formula hiding (True,False)
 import ParserProp
-import ParserRequestArgs
 import Prop
 import qualified PropSemanticsPC as PC
 import qualified PropSemanticsK3 as K3
@@ -36,26 +37,21 @@ processTask t =
 getTurnstile :: SemanticsReq -> String -> [String] -> Either String Bool
 getTurnstile sem s ss =
     case sem of
-    PCReq -> turnstilePC s ss
-    L3Req -> turnstileL3 s ss
-    K3Req -> turnstileK3 s ss
-    LPReq -> turnstileLP s ss
-    RMReq -> turnstileRM s ss
+    PCReq -> turnstile PC.semantics s ss
+    L3Req -> turnstile L3.semantics s ss
+    K3Req -> turnstile K3.semantics s ss
+    LPReq -> turnstile LP.semantics s ss
+    RMReq -> turnstile RM.semantics s ss
 
-makeTurnstyle sem s ss =
+turnstile :: Semantics Prop b -> String -> [String] -> Either String Bool
+turnstile sem s ss =
     case parse formulaProp "" s of
     (Left err) -> Left $ show err
     (Right f) -> case ss of
         [] -> Right $ valid sem f
         _ -> case sequence $ fmap (parse formulaProp "") ss of
             (Left err) -> Left $ show err
-            (Right fs) -> undefined
-
-turnstilePC = undefined
-turnstileK3 = undefined
-turnstileL3 = undefined
-turnstileLP = undefined
-turnstileRM = undefined
+            (Right fs) -> Right $ entails sem fs f
 
 {- formula cassifications -}
 getClassification :: SemanticsReq -> String -> Either String Property
