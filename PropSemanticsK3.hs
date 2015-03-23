@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wall -Werror #-}
+
 module PropSemanticsK3
     ( V(F,I,T)
     , semantics

@@ -1,7 +1,9 @@
-module ParserProp 
+{-# OPTIONS_GHC -Wall -Werror #-}
+
+module ParserProp
     ( prop
     , formulaProp
-    ) 
+    )
 where
 
 import Control.Applicative
@@ -15,7 +17,7 @@ import Prop
 import Formula
 
 prop :: Parser Prop
-prop =  Prop <$> many1 letter 
+prop =  Prop <$> many1 letter
 
 formulaProp :: Parser (Formula Prop)
 formulaProp = formula prop

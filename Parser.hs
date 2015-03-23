@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wall -Werror #-}
+
 module Parser where
 
 import Text.Parsec.Char (spaces)

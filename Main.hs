@@ -1,6 +1,6 @@
-{-# LANGUAGE ExistentialQuantification #-}
+{-# OPTIONS_GHC -Wall -Werror #-}
 
-{-# OPTIONS_GHC -Wall #-}
+{-# LANGUAGE ExistentialQuantification #-}
 
 import Control.Applicative
 import Control.Monad

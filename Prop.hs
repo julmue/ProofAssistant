@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wall -Werror #-}
+
 module Prop where
 
 import PrettyPrint

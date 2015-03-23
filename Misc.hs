@@ -1,11 +1,11 @@
+{-# OPTIONS_GHC -Wall -Werror #-}
+
 module Misc
     ( cartProd
     , combination
-    )
-where
+    ) where
 
-import Control.Applicative
-{- Misc helper functions -}
+import Control.Applicative ((<$>),(<*>))
 
 -- crossproduct
 cartProd :: [a] -> [b] -> [(a,b)]
@@ -15,5 +15,6 @@ cartProd as bs = (,) <$> as <*> bs
 -- all possible combinations of single element from every set.
 -- whats the exact name of the thing?
 combination :: [[a]] -> [[a]]
+combination [] = []
 combination [as] = fmap (:[]) as
 combination (x:xs) = (:) <$> x <*> combination xs
