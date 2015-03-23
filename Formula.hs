@@ -1,10 +1,11 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
 module Formula
-    ( Formula (..)
+    ( Formula (False, True, Atom, Not, And, Or, Imp, Iff, Forall, Exists)
     , mkAnd
     , mkOr
     , mkImp
+    , mkIff
     , mkForall
     , mkExists
     , destIff
@@ -21,12 +22,14 @@ module Formula
     , simSubs
     , seqSubs
     , replace
-    , deMorgan1
     )
 where
 
-import PrettyPrint
+import Prelude hiding (Bool(False,True))
+
 import Data.List
+
+import PrettyPrint
 
 data Formula a
     = False
@@ -99,9 +102,10 @@ disjuncts fm = case fm of
 -- generic recursive functions over formula
 
 -- apply function to all atoms of formula but leave structure untouched
--- ?? are formulas Functors ?? this looks like fmap ... ??
 onAtoms :: (a -> b) -> Formula a -> Formula b
 onAtoms f fm = case fm of
+    True        -> True
+    False       -> False
     Atom a      -> Atom $ f a
     Not p       -> Not $ onAtoms f p
     And p q     -> And (onAtoms f p) (onAtoms f q)
@@ -110,31 +114,34 @@ onAtoms f fm = case fm of
     Iff p q     -> Iff (onAtoms f p) (onAtoms f q)
     Forall x p  -> Forall x $ onAtoms f p
     Exists x p  -> Forall x $ onAtoms f p
---    _           -> fm that necessary? destroys (a -> b) and Functor behaviour
 
 onFormulas :: (Formula a -> Formula a) -> Formula a -> Formula a
 onFormulas f fm0 = case fm0 of
-    Atom a      -> Atom a
-    Not fm1     -> Not $ f fm1
-    And fm1 fm2 -> And (f fm1) (f fm2)
-    Or  fm1 fm2 -> Or  (f fm1) (f fm2)
-    Imp fm1 fm2 -> Imp (f fm1) (f fm2)
-    Iff fm1 fm2 -> Iff (f fm1) (f fm2)
+    True        -> f True
+    False       -> f False
+    Atom a      -> f $ Atom a
+    Not p       -> Not $ f p
+    And p q     -> And (f p) (f q)
+    Or  p q     -> Or  (f p) (f q)
+    Imp p q     -> Imp (f p) (f q)
+    Iff p q     -> Iff (f p) (f q)
+    Forall x p  -> Forall x $ f p
+    Exists x p  -> Exists x $ f p
 
-
-
-
--- overatoms
+-- Attention: test this and rework for ill-defined corner cases if possible
+-- this HAS to be fixed because it throws!
 overAtoms :: (a -> b -> b) -> Formula a -> b -> b
 overAtoms f fm b = case fm of
+    True        -> undefined
+    False       -> undefined
     Atom a      -> f a b
     Not p       -> overAtoms f p b
     And p q     -> overAtoms f p (overAtoms f q b)
     Or p q      -> overAtoms f p (overAtoms f q b)
     Imp p q     -> overAtoms f p (overAtoms f q b)
     Iff p q     -> overAtoms f p (overAtoms f q b)
-    Forall x p  -> overAtoms f p b
-    Exists x p  -> overAtoms f p b
+    Forall _ p  -> overAtoms f p b
+    Exists _ p  -> overAtoms f p b
 
 -- build the set of all atoms in a Formula
 atomsSet :: Eq a => Formula a -> [a]
@@ -145,12 +152,11 @@ atomsSet fm = nub $  overAtoms (:) fm []
 -- simultaneous substitution
 -- if more than one substitution is specified for the same atom
 -- the first one in the list is applied
--- simSub :: [(Formula a, Formula a)] -> Formula a -> Formula a
+simSubs :: (Eq a) => [(Formula a, Formula a)] -> Formula a -> Formula a
 simSubs subList fm = case fm of
-    atom@(Atom _)   -> let substitutions = [ subs | subs@(fst,_) <- subList, fst == atom ]
-                       in if null substitutions
-                          then atom
-                          else snd . head $ substitutions
+    True            -> substitution True
+    False           -> substitution False
+    atom@(Atom _)   -> substitution atom
     Not p           -> Not $ simSubs subList p
     And p q         -> And (simSubs subList p) (simSubs subList q)
     Or p q          -> Or (simSubs subList p) (simSubs subList q)
@@ -158,20 +164,17 @@ simSubs subList fm = case fm of
     Iff p q         -> Iff (simSubs subList p) (simSubs subList q)
     Forall x p      -> Forall x $ simSubs subList p
     Exists x p      -> Exists x $ simSubs subList p
+  where substitution f =
+            let substitutions = [ subs | subs@(x,_) <- subList, x == f]
+            in if null substitutions
+               then f
+               else snd . head $ substitutions
 
 seqSubs :: Eq a => [(Formula a, Formula a)] -> Formula a -> Formula a
-seqSubs subs fm = foldl (\ fm sub -> simSubs [sub] fm) fm subs
+seqSubs subs fm = foldl (\ f sub -> simSubs [sub] f) fm subs
 
 replace :: (Formula a -> Formula a) -> Formula a -> Formula a
-replace rep fm = onFormulas (replace rep) $ rep fm
-
-{- laws of PC -}
-
-deMorgan1 :: Formula a -> Formula a
-deMorgan1 fm = case fm of
-    Not (And sfm1 sfm2) -> Or (Not sfm1) (Not sfm2)
-    _ -> fm
-
+replace rep fm = onFormulas rep fm
 
 {- typeclass instances of Formula -}
 instance Functor Formula where
@@ -180,6 +183,8 @@ instance Functor Formula where
 instance PrettyPrint a => PrettyPrint (Formula a) where
     -- prettyPrint Formula a
     prettyPrint fm = case fm of
+        True        -> "true"
+        False       -> "false"
         Atom a      -> braces $ prettyPrint a
         Not p       -> braces $ "~" ++ prettyPrint p
         And p q     -> braces $ prettyPrint p ++ "&&" ++ prettyPrint q
@@ -189,18 +194,3 @@ instance PrettyPrint a => PrettyPrint (Formula a) where
         Forall x p  -> braces $ "forall " ++ show x ++ ":" ++ prettyPrint p
         Exists x p  -> braces $ "exists " ++ show x ++ ":" ++ prettyPrint p
         where braces a = "(" ++ a ++ ")"
-
-
--- functor law 1:
--- fmap id = id
-
--- functor law 2:
--- fmap (g . h) = (fmap g) . (fmap h)
-
--- maybe formula is an applicative functor ..
--- formula is a tree ...
--- conjunction of applicaton from (Formula (a->b)) to (Formula a)
--- instance Applicative Formula where
-    -- pure :: a -> f a
-    -- pure a = Atom a
-    -- <*> :: f (a -> b) ->
