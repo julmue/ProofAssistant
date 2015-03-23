@@ -22,30 +22,6 @@ data V
     | F
     deriving (Show, Eq, Ord)
 
--- interpretation / assignment
-
--- set of possible assignment functions for a formula
--- could all truth values be grouped into a type class?
-assignments :: (Eq a, Ord a, Ord b) =>[b] -> Formula a -> [a -> b]
-assignments truthValues formula =
-    let atoms = atomsSet formula
-        atomTValuePairs = cartProd atoms truthValues
-        partitions = groupBy ((==) `on` fst) atomTValuePairs
-        assnmtLookupTables = combination partitions
-    in makeAssignment <$> assnmtLookupTables
-    where makeAssignment :: Ord a => [(a,b)] -> (a -> b)
-          makeAssignment assnmtLookupTable a =
-            let map = fromList assnmtLookupTable
-            in fromMaybe (error "Error(Assignment): variable not in assignment function")
-               (lookup a map)
-
--- makeModels :: (Ord a, Eq a) => [a] -> [a] -> (Formula a -> Formula a) -> Formula a -> [a -> a]
-makeModels truthValues distinguishedTVals evalFn formula =
-   let assnmts = assignments truthValues formula
-       mask = evalFn <$> (sequence (onAtoms <$> (assignments truthValues formula)) formula)
-    in [ model | (model, tValue) <- zip assnmts mask, tValue `elem`(Atom <$> distinguishedTVals)]
-
-
 modelsK3 :: Formula Prop -> [Prop -> V]
 modelsK3 = makeModels [T,I,F] [T] eval
 
