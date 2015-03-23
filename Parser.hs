@@ -1,6 +1,9 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
-module Parser where
+module Parser
+    ( Parser
+    , parseString
+    ) where
 
 import Text.Parsec.Char (spaces)
 import Text.Parsec.String (Parser)
