@@ -28,6 +28,9 @@ eval fm = case fm of
     (Not p) -> not (eval p)
     (And p q) -> and (eval p) (eval q)
     (Or p q) -> or (eval p) (eval q)
+    (Imp p q) -> imp (eval p) (eval q)
+    (Iff p q) -> iff (eval p) (eval q)
+    _ -> error "Error(eval): undefined input"
 
 not (Atom p) = case p of
     T  -> Atom F
@@ -63,6 +66,7 @@ imp (Atom p) aq@(Atom q) =
         I -> Atom I
         F -> Atom I
     F -> Atom T
+imp _ _ = undefined
 
 iff ap@(Atom p) aq@(Atom q) = imp ap aq `and` imp aq ap
 iff _ _ = undefined
