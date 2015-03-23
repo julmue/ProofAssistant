@@ -38,9 +38,9 @@ eval fm v = case fm of
 assignments :: F.Formula P.Prop -> [P.Prop -> Bool]
 assignments fm =
     let atoms = F.atomsSet fm
-        prod = cartP atoms [True,False]
+        prod = cartProd atoms [True,False]
         eqp = groupBy ((==) `on` fst) prod
-    in assignTemplate <$> combine eqp
+    in assignTemplate <$> combination eqp
     where assignTemplate :: [(P.Prop,Bool)] -> P.Prop -> Bool
           assignTemplate list prop =
                 let map = M.fromList list

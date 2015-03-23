@@ -1,6 +1,6 @@
 module Misc
-    ( cartP
-    , combine
+    ( cartProd
+    , combination
     )
 where
 
@@ -8,11 +8,12 @@ import Control.Applicative
 {- Misc helper functions -}
 
 -- crossproduct
-cartP :: [a] -> [b] -> [(a,b)]
-cartP as bs = (,) <$> as <*> bs
+cartProd :: [a] -> [b] -> [(a,b)]
+cartProd as bs = (,) <$> as <*> bs
 
--- combination of two sets
+-- combination of sets
+-- all possible combinations of single element from every set.
 -- whats the exact name of the thing?
-combine :: [[a]] -> [[a]]
-combine [as] = fmap (:[]) as
-combine (x:xs) = (:) <$> x <*> combine xs
+combination :: [[a]] -> [[a]]
+combination [as] = fmap (:[]) as
+combination (x:xs) = (:) <$> x <*> combination xs
