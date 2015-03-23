@@ -9,9 +9,6 @@ import Control.Monad
 
 import Request
 
-
-requestArgs = undefined
-
 {-  Simple backtracking Parser to operate on a stream of strings;
     for parsing the return value of getArgs.
     Maybe this can be rewritten as a ParsecT parser ...
@@ -132,63 +129,66 @@ scanModels          = scanWithFlags flagModel
 scanNormalForms     = scanWithFlags flagNormalForm
 scanHelp            = scanWithFlags flagHelp
 
-toSemantics :: String -> Either Error Semantics
+toSemantics :: String -> Either Error SemanticsReq
 toSemantics s = case s of
-    "pc"    -> Right PC
-    "l3"    -> Right L3
+    "pc"    -> Right PCReq
+    "l3"    -> Right L3Req
+    "k3"    -> Right K3Req
+    "lp"    -> Right LPReq
+    "rm"    -> Right RMReq
     x       -> Left $ "Error(toSemantics): " ++ x ++ " is not a known semantics!"
 
-toProp :: String -> Either Error Prop
-toProp s = case s of
-    "valid" -> Right Valid
-    "sat"   -> Right Sat
-    "unsat" -> Right Unsat
-    x       -> Left $ "Error(toProp): " ++ x ++ " is not a known porperty!"
+toProperty :: String -> Either Error PropertyReq
+toProperty s = case s of
+    "valid" -> Right ValidReq
+    "sat"   -> Right SatReq
+    "unsat" -> Right UnsatReq
+    x       -> Left $ "Error(toProperty): " ++ x ++ " is not a known porperty!"
 
-toNormalForms :: String -> Either Error NormalForm
+toNormalForms :: String -> Either Error NormalFormReq
 toNormalForms s = case s of
-    "cnf"   -> Right CNF
-    "dnf"   -> Right DNF
+    "cnf"   -> Right CNFReq
+    "dnf"   -> Right DNFReq
     x       -> Left $ "Error(toNormalForm): " ++ x ++ " is not a known normal form!"
 
 -- Maybe this step should be split in two ...
 
-getFormulas :: [String] -> Either Error [String]
-getFormulas s = case getArgs scanFormulas s of
-    (Left _)        -> Left $ "Error(getFormulas): No formulas specified"
-    (Right [])      -> Left $ "Error(getFormulas): No formulas specified"
+getFormulaReqs :: [String] -> Either Error [String]
+getFormulaReqs s = case getArgs scanFormulas s of
+    (Left _)        -> Left $ "Error(getFormulaReqs): No formulas specified"
+    (Right [])      -> Left $ "Error(getFormulaReqs): No formulas specified"
     (Right fs)      -> (Right fs)
 
-getSemantics :: [String] -> Either Error [Semantics]
-getSemantics s = case getArgs scanSemantics s of
-    (Left _)        -> Left $ "Error(getSemantics): No semantics specified"
-    (Right [])      -> Left $ "Error(getSemantics): No semantics specified"
+getSemanticReqs :: [String] -> Either Error [SemanticsReq]
+getSemanticReqs s = case getArgs scanSemantics s of
+    (Left _)        -> Left $ "Error(getSemanticReqs): No semantics specified"
+    (Right [])      -> Left $ "Error(getSemanticReqs): No semantics specified"
     (Right ss)      -> sequence $ fmap toSemantics ss
 
-getClassification :: [String] -> Either Error Bool
-getClassification s = case getArgs scanClassification s of
+getClassificationReqs :: [String] -> Either Error Bool
+getClassificationReqs s = case getArgs scanClassification s of
     (Left _)        -> Right False
     (Right [])      -> Right True
-    (Right x)       -> Left $ "Error(getClassification): unknown Argument(s): " ++ (concat $ fmap show x)
+    (Right x)       -> Left $ "Error(getClassificationReqs): unknown Argument(s): " ++ (concat $ fmap show x)
 
-getProps :: [String] -> Either Error [Prop]
-getProps s = case getArgs scanProperties s of
+getPropertyReqs :: [String] -> Either Error [PropertyReq]
+getPropertyReqs s = case getArgs scanProperties s of
     (Left _)        -> Right []
-    (Right x)       -> sequence $ fmap toProp x
+    (Right x)       -> sequence $ fmap toProperty x
 
-getModels :: [String] -> Either Error Bool
-getModels s = case getArgs scanModels s of
+getModelReqs :: [String] -> Either Error Bool
+getModelReqs s = case getArgs scanModels s of
     (Left _)        -> Right False
     (Right [])      -> Right True
-    (Right x)       -> Left $ "Error(getModels): unknown Argument(s): " ++ (concat $ fmap show x)
+    (Right x)       -> Left $ "Error(getModelReqs): unknown Argument(s): " ++ (concat $ fmap show x)
 
-getNormalForms :: [String] -> Either Error [NormalForm]
-getNormalForms s = case getArgs scanNormalForms s of
+getNormalFormReqs :: [String] -> Either Error [NormalFormReq]
+getNormalFormReqs s = case getArgs scanNormalForms s of
     (Left _)        -> Right []
     (Right x)       -> sequence $ fmap toNormalForms x
 
-getHelp :: [String] -> Either Error Bool
-getHelp s = case getArgs scanHelp s of
+getHelpReqs :: [String] -> Either Error Bool
+getHelpReqs s = case getArgs scanHelp s of
     (Left _)        -> Right False
     (Right [])      -> Right True
     (Right _)       -> Right True
@@ -203,29 +203,29 @@ type Args = [String]
 requestConstructor :: Args -> Either Error Request
 requestConstructor args =
     pure Request
-    <*> getFormulas args
-    <*> getSemantics args
-    <*> getClassification args
-    <*> getProps args
-    <*> getModels args
-    <*> getNormalForms args
-    <*> getHelp args
+    <*> getFormulaReqs args
+    <*> getSemanticReqs args
+    <*> getClassificationReqs args
+    <*> getPropertyReqs args
+    <*> getModelReqs args
+    <*> getNormalFormReqs args
+    <*> getHelpReqs args
 
 
 tasksConstructor :: Request -> [Task]
 tasksConstructor req =
     let fs = getReqFormulas req
         ss = getReqSemantics req
-        ps = getReqProps req
+        ps = getReqProperties req
         nfs = getReqNormalForms req
-    in  [ Task f s ClassifyAction   | f <- fs, s <- ss, getReqClassify req] ++
-        [ Task f s (PropAction p)   | f <- fs, s <- ss, p <- ps ] ++
-        [ Task f s ModelAction      | f <- fs, s <- ss, getReqModels req ] ++
-        [ Task f s (NFAction nf)    | f <- fs, s <- ss, nf <- nfs ] ++
-        [ Task [] PC HelpAction     | (getReqHelp req) ]
+    in  [ Task f s ClassifyAction       | f <- fs, s <- ss, getReqClassify req] ++
+        [ Task f s (PropertyAction p)   | f <- fs, s <- ss, p <- ps ] ++
+        [ Task f s ModelAction          | f <- fs, s <- ss, getReqModels req ] ++
+        [ Task f s (NFAction nf)        | f <- fs, s <- ss, nf <- nfs ] ++
+        [ Task [] PCReq HelpAction      | (getReqHelp req) ]
 
 -- toTasks :: Args -> [Task]
 toTasks args = case tasksConstructor <$> requestConstructor args of
     err@(Left _)    -> err
-    (Right [])      -> Right $ [ Task [] PC HelpAction ]
+    (Right [])      -> Right $ [ Task [] PCReq HelpAction ]
     x               -> x

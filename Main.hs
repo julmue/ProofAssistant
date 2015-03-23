@@ -7,20 +7,21 @@ import Control.Monad
 import Data.List (unwords)
 import System.Environment (getArgs)
 
-import qualified Formula as F
+import Text.Parsec
+import Text.Parsec.String
+
+import Formula hiding (True,False)
 import FormulaPCLaws
 import Parser
 import ParserFormula
 import ParserProp
 import ParserRequestArgs
 import PrettyPrint
-import qualified Prop as P
-import qualified PropSemanticsPC as PC
-import qualified Request as R
-import qualified Semantics as S
-
-import Text.Parsec
-import Text.Parsec.String
+import Prop
+import PropSemanticsPC
+import PropSemanticsK3
+import Request
+import Semantics
 
 main :: IO ()
 -- main = toTasks <$> getArgs >>= print
@@ -38,43 +39,36 @@ data ShowBox = forall s. Show s => SB s
 instance Show ShowBox where
     show (SB c) = show c
 
-data Prop
-    = Valid
-    | Sat
-    | Unsat
-    deriving (Show, Eq)
-
-
-processTask :: R.Task -> ShowBox
+processTask :: Task -> ShowBox
 processTask t =
-    let f = R.getTaskFormula t
-        s = R.getTaskSemantics t
-    in  case R.getTaskAction t of
-        R.ClassifyAction      -> SB $ classification s f
---         (R.PropAction pa)     -> SB $ property f s pa
+    let f = getTaskFormula t
+        s = getTaskSemantics t
+    in  case getTaskAction t of
+        ClassifyAction      -> SB $ classification s f
+--         (R.PropertyAction pa)     -> SB $ property f s pa
 --         (R.ModelAction ma)    -> SB $ models f s ma
 --         (R.NFAction nf)       -> SB $ normalform f s nf
         (R.HelpAction)        -> SB $ "help"
 
 {- formula cassifications -}
 
-classification :: R.Semantics -> String -> Either String Prop
+classification :: Semantics -> String -> Either String Property
 classification sem s =
     case sem of
-    R.PC -> classificationPC s
-    R.L3 -> classificationL3 s
+    PC -> classificationPC s
+    L3 -> classificationL3 s
 
-classificationPC :: String -> Either String Prop
+classificationPC :: String -> Either String Property
 classificationPC s =
     case parse formulaProp "" s of
     (Left err) -> Left $ "Classification Propositional Calculus:" ++ show err
-    (Right f) -> Right $ if S.sat PC.pc f
-                         then if S.valid PC.pc f
+    (Right f) -> Right $ if sat pc f
+                         then if valid pc f
                               then Valid
                               else Sat
                          else Unsat
 
-classificationL3 :: String -> Either String Prop
+classificationL3 :: String -> Either String Property
 classificationL3 = undefined
 
 

@@ -1,5 +1,11 @@
 module Request
-
+    ( Request(..)
+    , Task(..)
+    , Action(..)
+    , SemanticsReq(..)
+    , PropertyReq(..)
+    , NormalFormReq(..)
+    )
 where
 
 -- import Prelude (String,Bool,Show,($),fmap,Eq,(++),Bool)
@@ -7,7 +13,8 @@ where
 import Control.Applicative
 import Data.List (nub,groupBy)
 
-import qualified Formula as F
+-- import Formula
+-- import Semantics
 
 {- clank
     command line arguments:
@@ -36,25 +43,25 @@ import qualified Formula as F
 
 data Request = Request {
     getReqFormulas          :: [String],
-    getReqSemantics         :: [Semantics],
+    getReqSemantics         :: [SemanticsReq],
     getReqClassify          :: Bool,
-    getReqProps             :: [Prop],
+    getReqProperties        :: [PropertyReq],
     getReqModels            :: Bool,
-    getReqNormalForms       :: [NormalForm],
+    getReqNormalForms       :: [NormalFormReq],
     getReqHelp              :: Bool
-} deriving (Show, Eq)
+} deriving (Show,Eq)
 
 data Task = Task {
-    getTaskFormula      :: String,
-    getTaskSemantics    :: Semantics,
-    getTaskAction       :: Action
-} deriving (Show, Eq)
+    getTaskFormula          :: String,
+    getTaskSemantics        :: SemanticsReq,
+    getTaskAction           :: Action
+} deriving (Show,Eq)
 
 data Action
     = ClassifyAction
-    | PropAction Prop
+    | PropertyAction PropertyReq
     | ModelAction
-    | NFAction  NormalForm
+    | NFAction  NormalFormReq
     | HelpAction
     deriving (Show,Eq)
 
@@ -64,20 +71,23 @@ data Action
 -- model, models :: [Model]
 -- normalform :: Formula
 
-data Semantics
-    = PC
-    | L3
+data SemanticsReq
+    = PCReq
+    | K3Req
+    | L3Req
+    | LPReq
+    | RMReq
     deriving (Show,Eq)
 
-data Prop
-    = Valid
-    | Sat
-    | Unsat
+data PropertyReq
+    = ValidReq
+    | SatReq
+    | UnsatReq
     deriving (Show,Eq)
 
-data NormalForm
-    = CNF
-    | DNF
+data NormalFormReq
+    = CNFReq
+    | DNFReq
     deriving (Show,Eq)
 
-data Help = Help deriving (Show,Eq)
+

@@ -1,5 +1,8 @@
 module Semantics
     ( Semantics (..)
+    , Property(..)
+    , Semantics(..)
+    , NormalForm(..)
     , assignments
     , makeModels
     )
@@ -15,6 +18,12 @@ import Data.Maybe (fromMaybe)
 
 import Formula hiding (True, False)
 import Misc
+
+data Property
+    = Valid
+    | Sat
+    | Unsat
+    deriving (Show, Eq)
 
 -- class of semantics for a
 data Semantics a b = Semantics {

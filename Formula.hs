@@ -1,4 +1,4 @@
-module Formula 
+module Formula
     ( Formula (..)
     , mkAnd
     , mkOr
@@ -20,13 +20,13 @@ module Formula
     , seqSubs
     , replace
     , deMorgan1
-    ) 
+    )
 where
 
 import PrettyPrint
 import Data.List
 
-data Formula a 
+data Formula a
     = False
     | True
     | Atom a
@@ -39,9 +39,8 @@ data Formula a
     | Exists String (Formula a)
     deriving (Show, Eq)
 
-
 -- constructor functions
-mkAnd :: Formula a -> Formula a -> Formula a 
+mkAnd :: Formula a -> Formula a -> Formula a
 mkAnd = And
 
 mkOr :: Formula a -> Formula a -> Formula a
@@ -124,11 +123,11 @@ onFormulas f fm0 = case fm0 of
 
 
 -- overatoms
-overAtoms :: (a -> b -> b) -> Formula a -> b -> b 
+overAtoms :: (a -> b -> b) -> Formula a -> b -> b
 overAtoms f fm b = case fm of
     Atom a      -> f a b
     Not p       -> overAtoms f p b
-    And p q     -> overAtoms f p (overAtoms f q b) 
+    And p q     -> overAtoms f p (overAtoms f q b)
     Or p q      -> overAtoms f p (overAtoms f q b)
     Imp p q     -> overAtoms f p (overAtoms f q b)
     Iff p q     -> overAtoms f p (overAtoms f q b)
@@ -145,7 +144,7 @@ atomsSet fm = nub $  overAtoms (:) fm []
 -- if more than one substitution is specified for the same atom
 -- the first one in the list is applied
 -- simSub :: [(Formula a, Formula a)] -> Formula a -> Formula a
-simSubs subList fm = case fm of 
+simSubs subList fm = case fm of
     atom@(Atom _)   -> let substitutions = [ subs | subs@(fst,_) <- subList, fst == atom ]
                        in if null substitutions
                           then atom
@@ -157,7 +156,7 @@ simSubs subList fm = case fm of
     Iff p q         -> Iff (simSubs subList p) (simSubs subList q)
     Forall x p      -> Forall x $ simSubs subList p
     Exists x p      -> Exists x $ simSubs subList p
-    
+
 seqSubs :: Eq a => [(Formula a, Formula a)] -> Formula a -> Formula a
 seqSubs (sub:subs) fm = let fm' = simSubs [sub] fm in seqSubs subs fm'
 seqSubs [] fm = fm
@@ -170,9 +169,9 @@ replace rep fm = onFormulas (replace rep) $ rep fm
 deMorgan1 :: Formula a -> Formula a
 deMorgan1 fm = case fm of
     Not (And sfm1 sfm2) -> Or (Not sfm1) (Not sfm2)
-    _ -> fm 
+    _ -> fm
 
-    
+
 {- typeclass instances of Formula -}
 instance Functor Formula where
     fmap = onAtoms
@@ -186,10 +185,10 @@ instance PrettyPrint a => PrettyPrint (Formula a) where
         Or p q      -> braces $ prettyPrint p ++ "||" ++ prettyPrint q
         Imp p q     -> braces $ prettyPrint p ++ "->" ++ prettyPrint q
         Iff p q     -> braces $ prettyPrint p ++ "<->" ++ prettyPrint q
-        Forall x p  -> braces $ "forall " ++ show x ++ ":" ++ prettyPrint p 
+        Forall x p  -> braces $ "forall " ++ show x ++ ":" ++ prettyPrint p
         Exists x p  -> braces $ "exists " ++ show x ++ ":" ++ prettyPrint p
         where braces a = "(" ++ a ++ ")"
- 
+
 
 -- functor law 1:
 -- fmap id = id
@@ -203,4 +202,4 @@ instance PrettyPrint a => PrettyPrint (Formula a) where
 -- instance Applicative Formula where
     -- pure :: a -> f a
     -- pure a = Atom a
-    -- <*> :: f (a -> b) -> 
+    -- <*> :: f (a -> b) ->
