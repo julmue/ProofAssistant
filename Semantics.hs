@@ -43,7 +43,7 @@ assignments truthValues formula =
         partitions = groupBy ((==) `on` fst) atomTValuePairs
         assnmtLookupTables = combination partitions
     in makeAssignment <$> assnmtLookupTables
-    where makeAssignment :: Ord a => [(a,b)] -> (a -> b)
+    where makeAssignment :: Ord a => [(a,b)] -> a -> b
           makeAssignment assnmtLookupTable a =
             let map = fromList assnmtLookupTable
             in fromMaybe (error "Error(Assignment): variable not in assignment function")
@@ -52,7 +52,7 @@ assignments truthValues formula =
 -- makeModels :: (Ord a, Eq a) => [a] -> [a] -> (Formula a -> Formula a) -> Formula a -> [a -> a]
 makeModels truthValues distinguishedTVals evalFn formula =
    let assnmts = assignments truthValues formula
-       mask = evalFn <$> (sequence (onAtoms <$> (assignments truthValues formula)) formula)
+       mask = evalFn <$> sequence (onAtoms <$> assignments truthValues formula) formula
     in [ model | (model, tValue) <- zip assnmts mask, tValue `elem`(Atom <$> distinguishedTVals)]
 
 

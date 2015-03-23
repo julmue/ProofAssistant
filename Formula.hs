@@ -158,8 +158,7 @@ simSubs subList fm = case fm of
     Exists x p      -> Exists x $ simSubs subList p
 
 seqSubs :: Eq a => [(Formula a, Formula a)] -> Formula a -> Formula a
-seqSubs (sub:subs) fm = let fm' = simSubs [sub] fm in seqSubs subs fm'
-seqSubs [] fm = fm
+seqSubs subs fm = foldl (\ fm sub -> simSubs [sub] fm) fm subs
 
 replace :: (Formula a -> Formula a) -> Formula a -> Formula a
 replace rep fm = onFormulas (replace rep) $ rep fm

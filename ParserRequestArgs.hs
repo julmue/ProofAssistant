@@ -91,7 +91,7 @@ oneOf :: [String] -> ParserTok String
 oneOf sl = satisfy (`elem` sl)
 
 noneOf :: [String] -> ParserTok String
-noneOf sl = satisfy $ not . (flip elem) sl
+noneOf sl = satisfy $ not . flip elem sl
 
 
 flagFormula = ["-f","--formula"]
@@ -114,7 +114,7 @@ scanOptions :: [String] -> [String] -> Parser [String] [String]
 scanOptions flags flag =
     ((++) <$> options flags flag <*> scanOptions flags flag)
     <|> options flags flag
-    where options flags flag = many (noneOf flag) *> oneOf flag *> (many (noneOf flags))
+    where options flags flag = many (noneOf flag) *> oneOf flag *> many (noneOf flags)
 
 
 scanWithFlags       = scanOptions flags
@@ -155,21 +155,21 @@ toNormalForms s = case s of
 
 getFormulaReqs :: [String] -> Either Error [String]
 getFormulaReqs s = case getArgs scanFormulas s of
-    (Left _)        -> Left $ "Error(getFormulaReqs): No formulas specified"
-    (Right [])      -> Left $ "Error(getFormulaReqs): No formulas specified"
-    (Right fs)      -> (Right fs)
+    (Left _)        -> Left "Error(getFormulaReqs): No formulas specified"
+    (Right [])      -> Left "Error(getFormulaReqs): No formulas specified"
+    (Right fs)      -> Right fs
 
 getSemanticReqs :: [String] -> Either Error [SemanticsReq]
 getSemanticReqs s = case getArgs scanSemantics s of
-    (Left _)        -> Left $ "Error(getSemanticReqs): No semantics specified"
-    (Right [])      -> Left $ "Error(getSemanticReqs): No semantics specified"
+    (Left _)        -> Left "Error(getSemanticReqs): No semantics specified"
+    (Right [])      -> Left "Error(getSemanticReqs): No semantics specified"
     (Right ss)      -> sequence $ fmap toSemantics ss
 
 getClassificationReqs :: [String] -> Either Error Bool
 getClassificationReqs s = case getArgs scanClassification s of
     (Left _)        -> Right False
     (Right [])      -> Right True
-    (Right x)       -> Left $ "Error(getClassificationReqs): unknown Argument(s): " ++ (concat $ fmap show x)
+    (Right x)       -> Left $ "Error(getClassificationReqs): unknown Argument(s): " ++ concat (fmap show x)
 
 getPropertyReqs :: [String] -> Either Error [PropertyReq]
 getPropertyReqs s = case getArgs scanProperties s of
@@ -180,7 +180,7 @@ getModelReqs :: [String] -> Either Error Bool
 getModelReqs s = case getArgs scanModels s of
     (Left _)        -> Right False
     (Right [])      -> Right True
-    (Right x)       -> Left $ "Error(getModelReqs): unknown Argument(s): " ++ (concat $ fmap show x)
+    (Right x)       -> Left $ "Error(getModelReqs): unknown Argument(s): " ++ concat (fmap show x)
 
 getNormalFormReqs :: [String] -> Either Error [NormalFormReq]
 getNormalFormReqs s = case getArgs scanNormalForms s of
@@ -222,10 +222,10 @@ tasksConstructor req =
         [ Task f s (PropertyAction p)   | f <- fs, s <- ss, p <- ps ] ++
         [ Task f s ModelAction          | f <- fs, s <- ss, getReqModels req ] ++
         [ Task f s (NFAction nf)        | f <- fs, s <- ss, nf <- nfs ] ++
-        [ Task [] PCReq HelpAction      | (getReqHelp req) ]
+        [ Task [] PCReq HelpAction      | getReqHelp req ]
 
 -- toTasks :: Args -> [Task]
 toTasks args = case tasksConstructor <$> requestConstructor args of
     err@(Left _)    -> err
-    (Right [])      -> Right $ [ Task [] PCReq HelpAction ]
+    (Right [])      -> Right [ Task [] PCReq HelpAction ]
     x               -> x

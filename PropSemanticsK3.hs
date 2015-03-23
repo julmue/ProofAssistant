@@ -73,7 +73,7 @@ iff _ _ = undefined
 
 
 validK3 :: Formula Prop -> Bool
-validK3 fm = (length $ modelsK3 fm) == (length $ assignments [T,I,F] fm)
+validK3 fm = length (modelsK3 fm) == length (assignments [T,I,F] fm)
 
 satK3 :: Formula Prop -> Bool
 satK3 = P.not . unsatK3

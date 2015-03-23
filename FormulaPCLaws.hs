@@ -96,7 +96,7 @@ distri2L (p`Or`(q`And`r)) = (p`Or`q)`And`(p`Or`r)
 distri2L fm = fm
 -- distri2R: (p∧q)∨(p∧r) → p∨(q∧r)
 distri2R fm@((p1`Or`q)`And`(p2`Or`r))
-    | p1 == p2 = (p1`Or`(q`And`r))
+    | p1 == p2 = p1`Or`(q`And`r)
     | otherwise = fm
 
 -- idempotence
@@ -125,17 +125,17 @@ doubleNegR fm = Not $ Not fm
 -- deMorgan laws: connect disjunction and conjunction
 -- deMorgan1: ¬(p∧q) ≡ ¬p∨¬q
 -- deMorgan1L: ¬(p∧q) → ¬p∨¬q
-deMorgan1L (Not(p`And`q)) = (Not p)`Or`(Not q)
+deMorgan1L (Not(p`And`q)) = Not p`Or`Not q
 deMorgan1L fm = fm
 -- deMorgan1R: ¬p∨¬ q → ¬(q∧q)
-deMorgan1R ((Not p)`Or`(Not q)) = Not(p`And`q)
+deMorgan1R (Not p`Or`Not q) = Not(p`And`q)
 deMorgan1R fm = fm
 -- deMorgan2: ¬(p∨q) ≡ ¬p∧¬q
 -- deMorgan2L: ¬(p∨q) → ¬p∧¬q
-deMorgan2L (Not(p`Or`q)) = (Not p)`And`(Not q)
+deMorgan2L (Not(p`Or`q)) = Not p`And`Not q
 deMorgan2L fm = fm
 -- deMorgan2R: ¬p∨¬ q → ¬(q∧q)
-deMorgan2R ((Not p)`And`(Not q)) = Not(p`Or`q)
+deMorgan2R (Not p`And`Not q) = Not(p`Or`q)
 deMorgan2R fm = fm
 
 -- absorption
@@ -185,25 +185,25 @@ contrad2R p = p`Or`False
 -- Weichenhain: connect implication with disjunktion and negation
 -- Weichenhain1: p→q ≡ ¬p∨q
 -- whain1L: p→q → ¬p∨q
-whain1L (p`Imp`q) = (Not p)`Or`q
+whain1L (p`Imp`q) = Not p`Or`q
 whain1L fm = fm
 -- whain1R: ¬p∨q → p→q
-whain1R ((Not p)`Or`q) = p`Imp`q
+whain1R (Not p`Or`q) = p`Imp`q
 whain1R fm = fm
 -- Weichenhain2: p∨q ≡ ¬p→q
 -- whain2L: p∨q → ¬p→q
-whain2L (p`Or`q) = (Not p)`Imp`q
+whain2L (p`Or`q) = Not p`Imp`q
 whain2L fm = fm
 -- whain2R: ¬p→q → p∨q
-whain2R ((Not p)`Imp`q) = p`Or`q
+whain2R (Not p`Imp`q) = p`Or`q
 whain2R fm = fm
 
 -- contraposition: p→q ≡ ¬q→¬p
 -- contra1L: p→q → ¬q→¬p
-contrapL (p`Imp`q) = (Not q)`Imp`(Not p)
+contrapL (p`Imp`q) = Not q`Imp`Not p
 contrapL fm = fm
 -- contra1R: ¬q→¬p = p→q
-contrapR ((Not q)`Imp`(Not p)) = p`Imp`q
+contrapR (Not q`Imp`Not p) = p`Imp`q
 contrapR fm = fm
 
 -- equivalence and implication: p ↔ q ≡ (p→q)∧(q→p)
@@ -212,5 +212,5 @@ equimpL (p`Iff`q) = (p`Imp`q)`And`(q`Imp`p)
 equimpL fm = fm
 -- equimp1R: (p→q)∧(q→p) → p↔q
 equimpR fm@((p1`Imp`q1)`And`(q2`Imp`p2))
-    | ((p1==p2) && (q1==q2)) = p1`Iff`q1
+    | (p1==p2) && (q1==q2) = p1`Iff`q1
     | otherwise = fm

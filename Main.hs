@@ -1,6 +1,6 @@
-{-# OPTIONS_GHC -XExistentialQuantification #-}
+{-# LANGUAGE ExistentialQuantification #-}
 
-{-- -# OPTIONS_GHC -Wall #-}
+{-# OPTIONS_GHC -Wall #-}
 
 import Control.Applicative
 import Control.Monad
@@ -48,7 +48,7 @@ processTask t =
         (PropertyAction pa)     -> SB $ getProperty sem s pa
         (ModelAction)           -> SB $ getModels sem s
 --         (R.NFAction nf)       -> SB $ normalform f s nf
-        (HelpAction)        -> SB $ "help"
+        (HelpAction)        -> SB "help"
 
 {- formula cassifications -}
 
@@ -61,7 +61,7 @@ getClassification sem s =
     LPReq -> classificationLP s
     RMReq -> classificationRM s
 
-makeClassification :: Semantics Prop b -> String -> Either [Char] Property
+makeClassification :: Semantics Prop b -> String -> Either String Property
 makeClassification sem s =
     case parse formulaProp "" s of
     (Left err) -> Left $ "Classification Propositional Calculus:" ++ show err
