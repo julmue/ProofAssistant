@@ -42,10 +42,10 @@ instance Show ShowBox where
 processTask :: Task -> ShowBox
 processTask t =
     let f = getTaskFormula t
-        s = getTaskSemantics t
+        sem = getTaskSemantics t
     in  case getTaskAction t of
-        ClassifyAction      -> SB $ classification s f
---         (R.PropertyAction pa)     -> SB $ property f s pa
+        ClassifyAction          -> SB $ classification sem f
+        (PropertyAction pa)     -> SB $ property sem f pa
 --         (R.ModelAction ma)    -> SB $ models f s ma
 --         (R.NFAction nf)       -> SB $ normalform f s nf
         (HelpAction)        -> SB $ "help"
@@ -61,37 +61,48 @@ classification sem s =
     LPReq -> classificationLP s
     RMReq -> classificationRM s
 
-classificationPC :: String -> Either String Property
-classificationPC s =
+makeClassification :: Semantics Prop b -> String -> Either [Char] Property
+makeClassification sem s =
     case parse formulaProp "" s of
     (Left err) -> Left $ "Classification Propositional Calculus:" ++ show err
-    (Right f) -> Right $ if sat pc f
-                         then if valid pc f
+    (Right f) -> Right $ if sat sem f
+                         then if valid sem f
                               then Valid
                               else Sat
                          else Unsat
 
-classificationK3 s =
-    case parse formulaProp "" s of
-    (Left err) -> Left $ "Classification Propositional Calculus:" ++ show err
-    (Right f) -> Right $ if sat k3 f
-                         then if valid k3 f
-                              then Valid
-                              else Sat
-                         else Unsat
-
-
-
-classificationL3 :: String -> Either String Property
+classificationPC = makeClassification pc
+classificationK3 = makeClassification k3
 classificationL3 = undefined
-
 classificationLP = undefined
-
 classificationRM = undefined
 
 
+{- property tasks -}
+property sem s pa =
+    case sem of
+    PCReq -> propertyPC s pa
+    L3Req -> propertyL3 s pa
+    K3Req -> propertyK3 s pa
+    LPReq -> propertyLP s pa
+    RMReq -> propertyRM s pa
+
+makeProperty sem s pa =
+    case parse formulaProp "" s of
+    (Left err) -> Left $ "Property Propositional Calculus:" ++ show err
+    (Right f) -> Right $ case pa of
+        ValidReq -> valid sem f
+        SatReq -> sat sem f
+        UnsatReq -> unsat sem f
+
+propertyPC = makeProperty pc
+propertyK3 = makeProperty k3
+propertyL3 = undefined
+propertyLP = undefined
+propertyRM = undefined
+
+
 {- -}
-property = undefined
 models = undefined
 normalform = undefined
 help = undefined
