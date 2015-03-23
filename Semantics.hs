@@ -1,5 +1,7 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
+{-# LANGUAGE ExistentialQuantification #-}
+
 module Semantics
     ( Semantics (..)
     , Property(..)
@@ -47,20 +49,21 @@ assignments truthValues formula =
     in makeAssignment <$> assnmtLookupTables
     where makeAssignment :: Ord a => [(a,b)] -> a -> b
           makeAssignment assnmtLookupTable a =
-            let map = fromList assnmtLookupTable
+            let m = fromList assnmtLookupTable
             in fromMaybe (error "Error(Assignment): variable not in assignment function")
-               (lookup a map)
+               (lookup a m)
 
--- makeModels :: (Ord a, Eq a) => [a] -> [a] -> (Formula a -> Formula a) -> Formula a -> [a -> a]
+makeModels :: forall b a.(Ord a, Ord b, Eq b) =>
+    [b] -> [b] -> (Formula b -> Formula b) -> Formula a -> [a -> b]
 makeModels truthValues distinguishedTVals evalFn formula =
    let assnmts = assignments truthValues formula
        mask = evalFn <$> sequence (onAtoms <$> assignments truthValues formula) formula
     in [ model | (model, tValue) <- zip assnmts mask, tValue `elem`(Atom <$> distinguishedTVals)]
 
-
-makeShowModels models formula =
+makeShowModels :: forall a b.Eq a => (Formula a -> [a -> b]) -> Formula a -> [[(a, b)]]
+makeShowModels mods formula =
     let atoms = atomsSet formula
-    in  [ [ (a, m a) | a <- atoms ] | m <- models formula ]
+    in  [ [ (a, m a) | a <- atoms ] | m <- mods formula ]
 
 
 
