@@ -1,8 +1,10 @@
 module PropSemanticsK3
-
+    ( k3
+    )
 where
 
 import Prelude hiding (not, and, or, lookup)
+import qualified Prelude as P (not)
 
 import Semantics
 import Formula (Formula(Atom,Not,And,Or,Imp,Iff),atomsSet,onAtoms)
@@ -53,7 +55,33 @@ or (Atom p) aq@(Atom q) =
     F -> aq
 or _ _ = undefined
 
--- imp (Atom p) (Atom q) =
-    -- case
+imp (Atom p) aq@(Atom q) =
+    case p of
+    T -> aq
+    I -> case q of
+        T -> Atom T
+        I -> Atom I
+        F -> Atom I
+    F -> Atom T
+
+iff ap@(Atom p) aq@(Atom q) = imp ap aq `and` imp aq ap
+iff _ _ = undefined
+
+
+validK3 :: Formula Prop -> Bool
+validK3 fm = (length $ modelsK3 fm) == (length $ assignments [T,I,F] fm)
+
+satK3 :: Formula Prop -> Bool
+satK3 = P.not . unsatK3
+
+unsatK3 :: Formula Prop -> Bool
+unsatK3 = null . modelsK3
+
+k3 = Semantics {
+    models = modelsK3,
+    valid = validK3,
+    sat = satK3,
+    unsat = unsatK3
+}
 
 
