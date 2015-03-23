@@ -13,6 +13,7 @@ import Prop
 import qualified PropSemanticsPC as PC
 import qualified PropSemanticsK3 as K3
 import qualified PropSemanticsL3 as L3
+import qualified PropSemanticsLP as LP
 import Request
 import Semantics
 
@@ -74,7 +75,7 @@ classificationL3 :: String -> Either String Property
 classificationL3 = makeClassification L3.semantics
 
 classificationLP :: String -> Either String Property
-classificationLP = undefined
+classificationLP = makeClassification LP.semantics
 
 classificationRM :: String -> Either String Property
 classificationRM = undefined
@@ -109,7 +110,7 @@ propertyL3 :: String -> PropertyReq -> Either [Char] Bool
 propertyL3 = makeProperty L3.semantics
 
 propertyLP :: String -> PropertyReq -> Either [Char] Bool
-propertyLP = undefined
+propertyLP = makeProperty LP.semantics
 
 propertyRM :: String -> PropertyReq -> Either [Char] Bool
 propertyRM = undefined
@@ -124,7 +125,7 @@ getModels sem s =
             PCReq -> show $ showModelsPC f
             K3Req -> show $ showModelsK3 f
             L3Req -> show $ showModelsL3 f
-            LPReq -> undefined
+            LPReq -> show $ showModelsLP f
             RMReq -> undefined
 
 showModelsPC :: Formula Prop -> [[(Prop, PC.V)]]
@@ -136,7 +137,9 @@ showModelsK3 = makeShowModels $ models K3.semantics
 showModelsL3 :: Formula Prop -> [[(Prop, L3.V)]]
 showModelsL3 = makeShowModels $ models L3.semantics
 
--- showModelsLP = undefined
+showModelsLP :: Formula Prop -> [[(Prop, LP.V)]]
+showModelsLP = makeShowModels $ models LP.semantics
+
 -- showModelsRM = undefined
 
 
