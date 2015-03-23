@@ -2,21 +2,13 @@
 
 {-# LANGUAGE ExistentialQuantification #-}
 
-import Control.Applicative
-import Control.Monad
-import Data.List (unwords)
 import System.Environment (getArgs)
 
-import Text.Parsec
-import Text.Parsec.String
+import Text.Parsec (parse)
 
 import Formula hiding (True,False)
-import FormulaPCLaws
-import Parser
-import ParserFormula
 import ParserProp
 import ParserRequestArgs
-import PrettyPrint
 import Prop
 import qualified PropSemanticsPC as PC
 import qualified PropSemanticsK3 as K3
