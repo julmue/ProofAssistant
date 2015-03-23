@@ -1,5 +1,6 @@
 module PropSemanticsK3
-    ( k3
+    ( V(F,I,T)
+    , semantics
     )
 where
 
@@ -81,7 +82,7 @@ satK3 = P.not . unsatK3
 unsatK3 :: Formula Prop -> Bool
 unsatK3 = null . modelsK3
 
-k3 = Semantics {
+semantics = Semantics {
     models = modelsK3,
     valid = validK3,
     sat = satK3,

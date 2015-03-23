@@ -18,8 +18,8 @@ import ParserProp
 import ParserRequestArgs
 import PrettyPrint
 import Prop
-import PropSemanticsPC
-import PropSemanticsK3
+import qualified PropSemanticsPC as PC
+import qualified PropSemanticsK3 as K3
 import Request
 import Semantics
 
@@ -47,8 +47,8 @@ processTask t =
         ClassifyAction          -> SB $ getClassification sem s
         (PropertyAction pa)     -> SB $ getProperty sem s pa
         (ModelAction)           -> SB $ getModels sem s
---         (R.NFAction nf)       -> SB $ normalform f s nf
-        (HelpAction)        -> SB "help"
+        (NFAction _)            -> error "not yet defined"
+        (HelpAction)            -> SB "help"
 
 {- formula cassifications -}
 
@@ -71,14 +71,24 @@ makeClassification sem s =
                               else Sat
                          else Unsat
 
-classificationPC = makeClassification pc
-classificationK3 = makeClassification k3
+classificationPC :: String -> Either String Property
+classificationPC = makeClassification PC.semantics
+
+classificationK3 :: String -> Either String Property
+classificationK3 = makeClassification K3.semantics
+
+classificationL3 :: String -> Either String Property
 classificationL3 = undefined
+
+classificationLP :: String -> Either String Property
 classificationLP = undefined
+
+classificationRM :: String -> Either String Property
 classificationRM = undefined
 
 
 {- property tasks -}
+getProperty :: SemanticsReq -> String -> PropertyReq -> Either [Char] Bool
 getProperty sem s pa =
     case sem of
     PCReq -> propertyPC s pa
@@ -87,6 +97,7 @@ getProperty sem s pa =
     LPReq -> propertyLP s pa
     RMReq -> propertyRM s pa
 
+makeProperty :: Semantics Prop b -> String -> PropertyReq -> Either [Char] Bool
 makeProperty sem s pa =
     case parse formulaProp "" s of
     (Left err) -> Left $ "Property Propositional Calculus:" ++ show err
@@ -95,37 +106,49 @@ makeProperty sem s pa =
         SatReq -> sat sem f
         UnsatReq -> unsat sem f
 
-propertyPC = makeProperty pc
-propertyK3 = makeProperty k3
+propertyPC :: String -> PropertyReq -> Either [Char] Bool
+propertyPC = makeProperty PC.semantics
+
+propertyK3 :: String -> PropertyReq -> Either [Char] Bool
+propertyK3 = makeProperty K3.semantics
+
+propertyL3 :: String -> PropertyReq -> Either [Char] Bool
 propertyL3 = undefined
+
+propertyLP :: String -> PropertyReq -> Either [Char] Bool
 propertyLP = undefined
+
+propertyRM :: String -> PropertyReq -> Either [Char] Bool
 propertyRM = undefined
 
 
 {- model task -}
--- getModels :: SemanticsReq -> String -> Either [Char] [[(Prop, PropSemanticsPC.V)]]
+getModels :: SemanticsReq -> String -> Either [Char] String
 getModels sem s =
     case parse formulaProp "" s of
         (Left err) -> Left $ "Model Propositional Calculus:" ++ show err
         (Right f) -> Right $ case sem of
             PCReq -> show $ showModelsPC f
             K3Req -> show $ showModelsK3 f
-            -- L3Req -> show $ showModelsL3 f
-            -- LPReq -> show $ showModelsLP f
-            -- RMReq -> show $ showModelsRM f
+            L3Req -> undefined
+            LPReq -> undefined
+            RMReq -> undefined
 
-showModelsPC = makeShowModels $ models pc
-showModelsK3 = makeShowModels $ models k3
-showModelsL3 = undefined
-showModelsLP = undefined
-showModelsRM = undefined
+showModelsPC :: Formula Prop -> [[(Prop, PC.V)]]
+showModelsPC = makeShowModels $ models PC.semantics
+
+showModelsK3 :: Formula Prop -> [[(Prop, K3.V)]]
+showModelsK3 = makeShowModels $ models K3.semantics
+-- showModelsL3 = undefined
+-- showModelsLP = undefined
+-- showModelsRM = undefined
 
 
 
 
 {- -}
-normalform = undefined
-help = undefined
+-- normalform = undefined
+-- help = undefined
 
 
 {- ToDo:

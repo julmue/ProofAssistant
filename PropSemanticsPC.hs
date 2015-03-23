@@ -1,5 +1,6 @@
 module PropSemanticsPC
-    ( pc
+    ( V(F,T)
+    , semantics
     )
 where
 
@@ -75,7 +76,7 @@ satPC = P.not . unsatPC
 unsatPC :: Formula Prop -> Bool
 unsatPC = null . modelsPC
 
-pc = Semantics {
+semantics = Semantics {
     models = modelsPC,
     valid = validPC,
     sat = satPC,
