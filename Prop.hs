@@ -1,8 +1,10 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
-module Prop where
+module Prop
+    ( Prop(..)
+    ) where
 
-import PrettyPrint
+import PrettyPrint (PrettyPrint, prettyPrint)
 
 newtype Prop = Prop { propName :: String } deriving (Eq, Ord)
 
