@@ -3,14 +3,13 @@
 module PropSemanticsK3
     ( V(F,I,T)
     , semantics
-    )
-where
+    ) where
 
-import Prelude hiding (not, and, or, lookup)
+import Prelude hiding (not, and, or, lookup, map)
 import qualified Prelude as P (not)
 
 import Semantics
-import Formula (Formula(Atom,Not,And,Or,Imp,Iff),atomsSet,onAtoms)
+import Formula (Formula(Atom,Not,And,Or,Imp,Iff))
 import Prop
 
 -- type of truth values
@@ -35,12 +34,14 @@ eval fm = case fm of
     (Iff p q) -> iff (eval p) (eval q)
     _ -> error "Error(eval): undefined input"
 
+not :: Formula V -> Formula V
 not (Atom p) = case p of
     T  -> Atom F
     I  -> Atom I
     F  -> Atom T
 not _ = undefined
 
+and :: Formula V -> Formula V -> Formula V
 and (Atom p) aq@(Atom q) =
     case p of
     T -> aq
@@ -51,6 +52,7 @@ and (Atom p) aq@(Atom q) =
     F -> Atom F
 and _ _ = undefined
 
+or :: Formula V -> Formula V -> Formula V
 or (Atom p) aq@(Atom q) =
     case p of
     T -> Atom T
@@ -61,6 +63,7 @@ or (Atom p) aq@(Atom q) =
     F -> aq
 or _ _ = undefined
 
+imp :: Formula V -> Formula V -> Formula V
 imp (Atom p) aq@(Atom q) =
     case p of
     T -> aq
@@ -71,7 +74,8 @@ imp (Atom p) aq@(Atom q) =
     F -> Atom T
 imp _ _ = undefined
 
-iff ap@(Atom p) aq@(Atom q) = imp ap aq `and` imp aq ap
+iff :: Formula V -> Formula V -> Formula V
+iff ap@(Atom _) aq@(Atom _) = imp ap aq `and` imp aq ap
 iff _ _ = undefined
 
 
@@ -84,6 +88,7 @@ satK3 = P.not . unsatK3
 unsatK3 :: Formula Prop -> Bool
 unsatK3 = null . modelsK3
 
+semantics :: Semantics Prop (Prop -> V)
 semantics = Semantics {
     models = modelsK3,
     valid = validK3,
