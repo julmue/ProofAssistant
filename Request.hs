@@ -7,16 +7,7 @@ module Request
     , SemanticsReq(..)
     , PropertyReq(..)
     , NormalFormReq(..)
-    )
-where
-
--- import Prelude (String,Bool,Show,($),fmap,Eq,(++),Bool)
-
-import Control.Applicative
-import Data.List (nub,groupBy)
-
--- import Formula
--- import Semantics
+    ) where
 
 {- clank
     command line arguments:
