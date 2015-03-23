@@ -3,16 +3,14 @@
 module PropSemanticsPC
     ( V(F,T)
     , semantics
-    )
-where
+    ) where
 
 import Prelude hiding (not, and, or, lookup)
 import qualified Prelude as P (not)
 
 import Semantics
-import Formula hiding (True, False)
+import Formula (Formula(Atom,Not,And,Or,Imp,Iff))
 import Prop
-import Misc
 
 data V
     = F
@@ -34,25 +32,30 @@ evalPC fm = case fm of
     (Or p q) -> or (evalPC p) (evalPC q)
     (Imp p q) -> imp (evalPC p) (evalPC q)
     (Iff p q) -> iff (evalPC p) (evalPC q)
+    _ -> error "Error(eval): undefined input"
 
 -- truth functions
+not :: Formula V -> Formula V
 not (Atom p) = case p of
     T -> Atom F
     F -> Atom T
 not _ = undefined
 
-and (Atom p) aq@(Atom q) =
+and :: Formula V -> Formula V -> Formula V
+and (Atom p) aq@(Atom _) =
     case p of
     T -> aq
     F -> Atom F
 and _ _ = undefined
 
-or (Atom p) aq@(Atom q) =
+or :: Formula V -> Formula V -> Formula V
+or (Atom p) aq@(Atom _) =
     case p of
     T -> Atom T
     F -> aq
 or _ _ = undefined
 
+imp :: Formula V -> Formula V -> Formula V
 imp (Atom p) (Atom q) =
     case p of
     T -> case q of
@@ -61,7 +64,8 @@ imp (Atom p) (Atom q) =
     F -> Atom T
 imp _ _ = undefined
 
-iff ap@(Atom p) aq@(Atom q) = imp ap aq `and` imp aq ap
+iff :: Formula V -> Formula V -> Formula V
+iff ap@(Atom _) aq@(Atom _) = imp ap aq `and` imp aq ap
 iff _ _ = undefined
 
 
@@ -78,6 +82,7 @@ satPC = P.not . unsatPC
 unsatPC :: Formula Prop -> Bool
 unsatPC = null . modelsPC
 
+semantics :: Semantics Prop (Prop -> V)
 semantics = Semantics {
     models = modelsPC,
     valid = validPC,
