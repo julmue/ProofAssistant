@@ -1,16 +1,15 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
 module ParserFormula
-    (   formula
-    )
-where
+    ( formula
+    ) where
+
+import Data.Functor.Identity (Identity)
 
 import Text.Parsec
 import Text.Parsec.String
 import qualified Text.Parsec.Token as Token
 import qualified Text.Parsec.Expr as Expr
-
-import Data.Functor.Identity (Identity)
 
 import qualified Formula as F
 
@@ -48,19 +47,14 @@ reservedOp  :: String -> Parser ()
 reservedOp  = Token.reservedOp lexer
 parens      :: Parser a -> Parser a
 parens      = Token.parens lexer
-integer     :: Parser Integer
-integer     = Token.integer lexer
-semi        :: Parser String
-semi        = Token.semi lexer
+-- integer     :: Parser Integer
+-- integer     = Token.integer lexer
+-- semi        :: Parser String
+-- semi        = Token.semi lexer
 whiteSpace  :: Parser ()
 whiteSpace  = Token.whiteSpace lexer
 
--- example:
--- parse identifier "(unknown)" "hello"
--- > right "hello"
-
 {- main parser -}
-
 true :: Parser (F.Formula a)
 true =
     reserved "true" >>
@@ -98,9 +92,3 @@ formula p =
      <|> false
      <|> atom p
     )
-
--- example:
--- (parse $ formula letter) "" "atom h"
--- > Atom 'h'
-
-
