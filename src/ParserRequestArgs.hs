@@ -100,6 +100,9 @@ flagFormula = ["-f","--formula"]
 flagSemantics :: [[Char]]
 flagSemantics = ["-s","--semantics"]
 
+flagTurnstile :: [[Char]]
+flagTurnstile = ["-t","--turnstile"]
+
 flagClassification :: [[Char]]
 flagClassification = ["-c","--classify"]
 
@@ -116,7 +119,7 @@ flagHelp :: [[Char]]
 flagHelp = ["-h","--help"]
 
 flags :: [[Char]]
-flags = flagFormula ++ flagSemantics ++ flagClassification ++ flagProperty ++
+flags = flagFormula ++ flagSemantics ++ flagTurnstile ++ flagClassification ++ flagProperty ++
         flagModel ++ flagNormalForm ++ flagHelp
 
 -- scanOptions
@@ -140,6 +143,9 @@ scanFormulas = scanWithFlags flagFormula
 
 scanSemantics :: Parser [String] [String]
 scanSemantics = scanWithFlags flagSemantics
+
+scanTurnstile :: Parser [String] [String]
+scanTurnstile = scanWithFlags flagTurnstile
 
 scanClassification :: Parser [String] [String]
 scanClassification = scanWithFlags flagClassification
@@ -192,6 +198,12 @@ getSemanticReqs s = case getArgs scanSemantics s of
     (Right [])      -> Left "Error(getSemanticReqs): No semantics specified"
     (Right ss)      -> sequence $ fmap toSemantics ss
 
+getTurnstileReqs :: [String] -> Either Error Bool
+getTurnstileReqs s = case getArgs scanTurnstile s of
+    (Left _)        -> Right False
+    (Right [])      -> Right True
+    (Right x)       -> Left $ "Error(getTurnstyle): unknown Argument(s): " ++ concat (fmap show x)
+
 getClassificationReqs :: [String] -> Either Error Bool
 getClassificationReqs s = case getArgs scanClassification s of
     (Left _)        -> Right False
@@ -228,6 +240,7 @@ requestConstructor args =
     pure Request
     <*> getFormulaReqs args
     <*> getSemanticReqs args
+    <*> getTurnstileReqs args
     <*> getClassificationReqs args
     <*> getPropertyReqs args
     <*> getModelReqs args
@@ -237,15 +250,16 @@ requestConstructor args =
 
 tasksConstructor :: Request -> [Task]
 tasksConstructor req =
-    let fs = getReqFormulas req
+    let fs@(hf:tf) = getReqFormulas req
         ss = getReqSemantics req
         ps = getReqProperties req
         nfs = getReqNormalForms req
-    in  [ Task f s ClassifyAction       | f <- fs, s <- ss, getReqClassify req] ++
-        [ Task f s (PropertyAction p)   | f <- fs, s <- ss, p <- ps ] ++
-        [ Task f s ModelAction          | f <- fs, s <- ss, getReqModels req ] ++
-        [ Task f s (NFAction nf)        | f <- fs, s <- ss, nf <- nfs ] ++
-        [ Task [] PCReq HelpAction      | getReqHelp req ]
+    in  [ Task hf s (TurnstileAction tf)    | s <- ss ] ++
+        [ Task f s ClassifyAction           | f <- fs, s <- ss, getReqClassify req] ++
+        [ Task f s (PropertyAction p)       | f <- fs, s <- ss, p <- ps ] ++
+        [ Task f s ModelAction              | f <- fs, s <- ss, getReqModels req ] ++
+        [ Task f s (NFAction nf)            | f <- fs, s <- ss, nf <- nfs ] ++
+        [ Task [] PCReq HelpAction          | getReqHelp req ]
 
 toTasks :: Args -> Either Error [Task]
 toTasks args = case tasksConstructor <$> requestConstructor args of

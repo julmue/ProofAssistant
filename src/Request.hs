@@ -37,6 +37,7 @@ module Request
 data Request = Request {
     getReqFormulas          :: [String],
     getReqSemantics         :: [SemanticsReq],
+    getReqTurnstile         :: Bool,
     getReqClassify          :: Bool,
     getReqProperties        :: [PropertyReq],
     getReqModels            :: Bool,
@@ -51,7 +52,8 @@ data Task = Task {
 } deriving (Show,Eq)
 
 data Action
-    = ClassifyAction
+    = TurnstileAction [String]
+    | ClassifyAction
     | PropertyAction PropertyReq
     | ModelAction
     | NFAction  NormalFormReq

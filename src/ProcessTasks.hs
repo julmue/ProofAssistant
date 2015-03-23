@@ -25,14 +25,39 @@ processTask t =
     let s = getTaskFormula t
         sem = getTaskSemantics t
     in  case getTaskAction t of
+        TurnstileAction ss      -> ShowBox $ getTurnstile sem s ss
         ClassifyAction          -> ShowBox $ getClassification sem s
         (PropertyAction pa)     -> ShowBox $ getProperty sem s pa
         (ModelAction)           -> ShowBox $ getModels sem s
         (NFAction _)            -> error "not yet defined"
         (HelpAction)            -> ShowBox "help"
 
-{- formula cassifications -}
+{- entailing relation -}
+getTurnstile :: SemanticsReq -> String -> [String] -> Either String Bool
+getTurnstile sem s ss =
+    case sem of
+    PCReq -> turnstilePC s ss
+    L3Req -> turnstileL3 s ss
+    K3Req -> turnstileK3 s ss
+    LPReq -> turnstileLP s ss
+    RMReq -> turnstileRM s ss
 
+makeTurnstyle sem s ss =
+    case parse formulaProp "" s of
+    (Left err) -> Left $ show err
+    (Right f) -> case ss of
+        [] -> Right $ valid sem f
+        _ -> case sequence $ fmap (parse formulaProp "") ss of
+            (Left err) -> Left $ show err
+            (Right fs) -> undefined
+
+turnstilePC = undefined
+turnstileK3 = undefined
+turnstileL3 = undefined
+turnstileLP = undefined
+turnstileRM = undefined
+
+{- formula cassifications -}
 getClassification :: SemanticsReq -> String -> Either String Property
 getClassification sem s =
     case sem of
