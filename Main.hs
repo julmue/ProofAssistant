@@ -71,10 +71,19 @@ classificationPC s =
                               else Sat
                          else Unsat
 
+classificationK3 s =
+    case parse formulaProp "" s of
+    (Left err) -> Left $ "Classification Propositional Calculus:" ++ show err
+    (Right f) -> Right $ if sat k3 f
+                         then if valid k3 f
+                              then Valid
+                              else Sat
+                         else Unsat
+
+
+
 classificationL3 :: String -> Either String Property
 classificationL3 = undefined
-
-classificationK3 = undefined
 
 classificationLP = undefined
 
