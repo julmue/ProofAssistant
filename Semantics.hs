@@ -5,17 +5,23 @@ module Semantics
     )
 where
 
-import Formula as F
-import Prelude as Pl
+import Prelude hiding (lookup)
+
+import Control.Applicative ((<$>))
+import Data.Function (on)
+import Data.List (groupBy)
+import Data.Map (fromList, lookup)
+import Data.Maybe (fromMaybe)
+
+import Formula hiding (True, False)
+import Misc
 
 -- class of semantics for a
-
 data Semantics a b = Semantics {
-    isModel :: F.Formula a -> b -> Pl.Bool,
-    models :: F.Formula a -> [b],
-    valid :: F.Formula a -> Pl.Bool,
-    sat :: F.Formula a -> Pl.Bool,
-    unsat :: F.Formula a -> Pl.Bool
+    models :: Formula a -> [b],
+    valid :: Formula a -> Bool,
+    sat :: Formula a -> Bool,
+    unsat :: Formula a -> Bool
 }
 
 -- interpretation / assignment

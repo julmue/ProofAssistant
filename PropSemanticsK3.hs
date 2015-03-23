@@ -4,22 +4,15 @@ where
 
 import Prelude hiding (not, and, or, lookup)
 
-import Control.Applicative ((<$>))
-import Data.Map (fromList, lookup)
-import Data.Function (on)
-import Data.List (groupBy)
-import Data.Maybe (fromMaybe)
-
 import Semantics
 import Formula (Formula(Atom,Not,And,Or,Imp,Iff),atomsSet,onAtoms)
 import Prop
-import Misc
 
 -- type of truth values
 data V
-    = T
+    = F
     | I
-    | F
+    | T
     deriving (Show, Eq, Ord)
 
 modelsK3 :: Formula Prop -> [Prop -> V]

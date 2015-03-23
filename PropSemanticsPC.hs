@@ -3,73 +3,81 @@ module PropSemanticsPC
     )
 where
 
-import Control.Applicative
+import Prelude hiding (not, and, or, lookup)
+import qualified Prelude as P (not)
 
-import qualified Data.Map as M
-import Data.List
-import Data.Function (on)
-import Data.Maybe (fromMaybe)
-
-import qualified Semantics as S
-import qualified Formula as F
-import qualified Prop as P
-
+import Semantics
+import Formula hiding (True, False)
+import Prop
 import Misc
 
--- evaluation function of Formula over domain a
-eval :: F.Formula P.Prop -> (P.Prop -> Bool) -> Bool
-eval fm v = case fm of
-    F.False     -> False
-    F.True      -> True
-    F.Atom x    -> v x
-    F.Not p     -> not $ eval p v
-    F.And p q   -> eval p v && eval q v
-    F.Or p q    -> eval p v || eval q v
-    F.Imp p q   -> not (eval p v) || eval q v
-    F.Iff p q   -> eval p v == eval q v
-
+data V
+    = F
+    | T
+    deriving (Show, Ord, Eq)
 
 -- models:
--- the set of all models of a formula f
+-- the set of all PC models of a formula f
+modelsPC :: Formula Prop -> [Prop -> V]
+modelsPC = makeModels [T,F] [T] evalPC
 
--- assignments:
--- set of possible assignment functions
--- based on the propositional variables in a logic formula
-assignments :: F.Formula P.Prop -> [P.Prop -> Bool]
-assignments fm =
-    let atoms = F.atomsSet fm
-        prod = cartProd atoms [True,False]
-        eqp = groupBy ((==) `on` fst) prod
-    in assignTemplate <$> combination eqp
-    where assignTemplate :: [(P.Prop,Bool)] -> P.Prop -> Bool
-          assignTemplate list prop =
-                let map = M.fromList list
-                in fromMaybe (error "variable not in assignment function")
-                    (M.lookup prop map)
+-- evaluation function
+evalPC :: Formula V -> Formula V
+evalPC fm = case fm of
+    (Atom T) -> Atom T
+    (Atom F) -> Atom F
+    (Not p) -> not (evalPC p)
+    (And p q) -> and (evalPC p) (evalPC q)
+    (Or p q) -> or (evalPC p) (evalPC q)
+    (Imp p q) -> imp (evalPC p) (evalPC q)
+    (Iff p q) -> iff (evalPC p) (evalPC q)
 
-models :: F.Formula P.Prop -> [P.Prop -> Bool]
-models fm =
-    let assgn = assignments fm
-        mask = eval fm <$> assgn
-    in [ x | (x,True) <- zip assgn mask]
+-- truth functions
+not (Atom p) = case p of
+    T -> Atom F
+    F -> Atom T
+not _ = undefined
+
+and (Atom p) aq@(Atom q) =
+    case p of
+    T -> aq
+    F -> Atom F
+and _ _ = undefined
+
+or (Atom p) aq@(Atom q) =
+    case p of
+    T -> Atom T
+    F -> aq
+or _ _ = undefined
+
+imp (Atom p) (Atom q) =
+    case p of
+    T -> case q of
+        T -> Atom T
+        F -> Atom F
+    F -> Atom T
+imp _ _ = undefined
+
+iff ap@(Atom p) aq@(Atom q) = imp ap aq `and` imp aq ap
+iff _ _ = undefined
+
 
 -- checks if a formula is valid / a tautology
 -- a formula is valid iff its negation is unsatisfiable
-valid :: F.Formula P.Prop -> Bool
-valid = unsat . F.Not
+validPC :: Formula Prop -> Bool
+validPC = unsatPC . Not
 
 -- checks if formula is sat / a contingent formula
-sat :: F.Formula P.Prop -> Bool
-sat = not . unsat
+satPC :: Formula Prop -> Bool
+satPC = P.not . unsatPC
 
 -- checks if formula is not sat / a contradiction
-unsat :: F.Formula P.Prop -> Bool
-unsat = null . models
+unsatPC :: Formula Prop -> Bool
+unsatPC = null . modelsPC
 
-pc = S.Semantics {
-    S.isModel = eval,
-    S.models = models,
-    S.valid = valid,
-    S.sat = sat,
-    S.unsat = unsat
+pc = Semantics {
+    models = modelsPC,
+    valid = validPC,
+    sat = satPC,
+    unsat = unsatPC
 }
