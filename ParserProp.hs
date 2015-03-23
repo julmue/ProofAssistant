@@ -3,10 +3,9 @@
 module ParserProp
     ( prop
     , formulaProp
-    )
-where
+    ) where
 
-import Control.Applicative
+import Control.Applicative ((<$>))
 
 import Text.Parsec.Char	(letter)
 import Text.Parsec.String (Parser)
