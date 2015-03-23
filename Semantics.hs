@@ -1,8 +1,6 @@
 module Semantics
     ( Semantics (..)
     , Property(..)
-    , Semantics(..)
-    , NormalForm(..)
     , assignments
     , makeModels
     )

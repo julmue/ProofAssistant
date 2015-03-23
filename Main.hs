@@ -48,15 +48,18 @@ processTask t =
 --         (R.PropertyAction pa)     -> SB $ property f s pa
 --         (R.ModelAction ma)    -> SB $ models f s ma
 --         (R.NFAction nf)       -> SB $ normalform f s nf
-        (R.HelpAction)        -> SB $ "help"
+        (HelpAction)        -> SB $ "help"
 
 {- formula cassifications -}
 
-classification :: Semantics -> String -> Either String Property
+classification :: SemanticsReq -> String -> Either String Property
 classification sem s =
     case sem of
-    PC -> classificationPC s
-    L3 -> classificationL3 s
+    PCReq -> classificationPC s
+    L3Req -> classificationL3 s
+    K3Req -> classificationK3 s
+    LPReq -> classificationLP s
+    RMReq -> classificationRM s
 
 classificationPC :: String -> Either String Property
 classificationPC s =
@@ -70,6 +73,12 @@ classificationPC s =
 
 classificationL3 :: String -> Either String Property
 classificationL3 = undefined
+
+classificationK3 = undefined
+
+classificationLP = undefined
+
+classificationRM = undefined
 
 
 {- -}
