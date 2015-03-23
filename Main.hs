@@ -41,19 +41,19 @@ instance Show ShowBox where
 
 processTask :: Task -> ShowBox
 processTask t =
-    let f = getTaskFormula t
+    let s = getTaskFormula t
         sem = getTaskSemantics t
     in  case getTaskAction t of
-        ClassifyAction          -> SB $ classification sem f
-        (PropertyAction pa)     -> SB $ property sem f pa
---         (R.ModelAction ma)    -> SB $ models f s ma
+        ClassifyAction          -> SB $ getClassification sem s
+        (PropertyAction pa)     -> SB $ getProperty sem s pa
+        (ModelAction)           -> SB $ getModels sem s
 --         (R.NFAction nf)       -> SB $ normalform f s nf
         (HelpAction)        -> SB $ "help"
 
 {- formula cassifications -}
 
-classification :: SemanticsReq -> String -> Either String Property
-classification sem s =
+getClassification :: SemanticsReq -> String -> Either String Property
+getClassification sem s =
     case sem of
     PCReq -> classificationPC s
     L3Req -> classificationL3 s
@@ -79,7 +79,7 @@ classificationRM = undefined
 
 
 {- property tasks -}
-property sem s pa =
+getProperty sem s pa =
     case sem of
     PCReq -> propertyPC s pa
     L3Req -> propertyL3 s pa
@@ -102,8 +102,28 @@ propertyLP = undefined
 propertyRM = undefined
 
 
+{- model task -}
+-- getModels :: SemanticsReq -> String -> Either [Char] [[(Prop, PropSemanticsPC.V)]]
+getModels sem s =
+    case parse formulaProp "" s of
+        (Left err) -> Left $ "Model Propositional Calculus:" ++ show err
+        (Right f) -> Right $ case sem of
+            PCReq -> show $ showModelsPC f
+            K3Req -> show $ showModelsK3 f
+            -- L3Req -> show $ showModelsL3 f
+            -- LPReq -> show $ showModelsLP f
+            -- RMReq -> show $ showModelsRM f
+
+showModelsPC = makeShowModels $ models pc
+showModelsK3 = makeShowModels $ models k3
+showModelsL3 = undefined
+showModelsLP = undefined
+showModelsRM = undefined
+
+
+
+
 {- -}
-models = undefined
 normalform = undefined
 help = undefined
 
