@@ -3,6 +3,7 @@ module Semantics
     , Property(..)
     , assignments
     , makeModels
+    , makeShowModels
     )
 where
 
@@ -53,6 +54,13 @@ makeModels truthValues distinguishedTVals evalFn formula =
    let assnmts = assignments truthValues formula
        mask = evalFn <$> (sequence (onAtoms <$> (assignments truthValues formula)) formula)
     in [ model | (model, tValue) <- zip assnmts mask, tValue `elem`(Atom <$> distinguishedTVals)]
+
+
+makeShowModels models formula =
+    let atoms = atomsSet formula
+    in  [ [ (a, m a) | a <- atoms ] | m <- models formula ]
+
+
 
 
 {- Todo:
