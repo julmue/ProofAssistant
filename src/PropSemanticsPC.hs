@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -Wall -Werror #-}
+-- {-# OPTIONS_GHC -Wall -Werror #-}
 
 module PropSemanticsPC
     ( V(F,T)
@@ -20,7 +20,7 @@ data V
 -- models:
 -- the set of all PC models of a formula f
 modelsPC :: Formula Prop -> [Prop -> V]
-modelsPC = makeModels [T,F] [T] evalPC
+modelsPC = makeModels semantics
 
 -- evaluation function
 evalPC :: Formula V -> Formula V
@@ -97,9 +97,19 @@ fullAnd fs = case fs of
 
 semantics :: Semantics Prop (Prop -> V)
 semantics = Semantics {
+    eval = evalPC,
     models = modelsPC,
     valid = validPC,
     sat = satPC,
     unsat = unsatPC,
-    entails = entailsPC
+    entails = entailsPC,
+    trVals = [T,F],
+    desigTrVals = [T]
 }
+
+
+setModels :: [Formula Prop] -> [Prop -> V]
+setModels = concat . (fmap modelsPC)
+
+
+-- entailment fms fm = and fmap ('elem' ) allModels fm
