@@ -2,7 +2,7 @@
 
 module PropSemanticsPC
     ( V(F,T)
-    , semantics
+--    , semantics
     ) where
 
 import Prelude hiding (not, and, or, lookup)
@@ -19,8 +19,10 @@ data V
 
 -- models:
 -- the set of all PC models of a formula f
-modelsPC :: Formula Prop -> [Prop -> V]
-modelsPC = makeModels semantics
+-- modelsPC :: Formula Prop -> [Prop -> V]
+-- modelsPC = makeModels semantics
+
+trvPC = makeTrVals [T,F] [T]
 
 -- evaluation function
 evalPC :: Formula V -> Formula V
@@ -68,24 +70,27 @@ iff :: Formula V -> Formula V -> Formula V
 iff ap@(Atom _) aq@(Atom _) = imp ap aq `and` imp aq ap
 iff _ _ = undefined
 
+semantics :: Semantics Prop V
+semantics = makeSemantics trvPC evalPC
+
 
 -- checks if a formula is valid / a tautology
 -- a formula is valid iff its negation is unsatisfiable
-validPC :: Formula Prop -> Bool
-validPC = unsatPC . Not
+-- validPC :: Formula Prop -> Bool
+-- validPC = unsatPC . Not
 
 -- checks if formula is sat / a contingent formula
-satPC :: Formula Prop -> Bool
-satPC = P.not . unsatPC
+-- satPC :: Formula Prop -> Bool
+-- satPC = P.not . unsatPC
 
 -- checks if formula is not sat / a contradiction
-unsatPC :: Formula Prop -> Bool
-unsatPC = null . modelsPC
+-- unsatPC :: Formula Prop -> Bool
+-- unsatPC = null . modelsPC
 
-entailsPC :: [Formula Prop] -> Formula Prop -> Bool
-entailsPC fs f = case fs of
-    [] -> validPC f
-    _ -> validPC $ Imp (fullAnd fs) f
+-- entailsPC :: [Formula Prop] -> Formula Prop -> Bool
+-- entailsPC fs f = case fs of
+--    [] -> validPC f
+--    _ -> validPC $ Imp (fullAnd fs) f
 
 
 -- this should definitly be in the Formula Module!
@@ -95,21 +100,21 @@ fullAnd fs = case fs of
     [f] -> f
     (hf:tf) -> And hf $ fullAnd tf
 
-semantics :: Semantics Prop (Prop -> V)
-semantics = Semantics {
-    eval = evalPC,
-    models = modelsPC,
-    valid = validPC,
-    sat = satPC,
-    unsat = unsatPC,
-    entails = entailsPC,
-    trVals = [T,F],
-    desigTrVals = [T]
-}
+-- semantics :: Semantics Prop (Prop -> V)
+-- semantics = Semantics {
+--     eval = evalPC,
+--     models = modelsPC,
+--     valid = validPC,
+--     sat = satPC,
+--     unsat = unsatPC,
+--     entails = entailsPC,
+--     trVals = [T,F],
+--     desigTrVals = [T]
+--}
 
 
-setModels :: [Formula Prop] -> [Prop -> V]
-setModels = concat . (fmap modelsPC)
+-- setModels :: [Formula Prop] -> [Prop -> V]
+-- setModels = concat . (fmap modelsPC)
 
 
 -- entailment fms fm = and fmap ('elem' ) allModels fm

@@ -3,6 +3,7 @@
 module Semantics
     ( Semantics (..)
     , Property(..)
+    , makeTrVals
     , makeDomain
     , makeSemantics
  --   , makeModels
@@ -14,7 +15,7 @@ import Prelude hiding (lookup)
 
 import Control.Applicative ((<$>), (<*>), pure, ZipList(..))
 import Data.Function (on)
-import Data.List (groupBy)
+import Data.List ((\\), groupBy, nub)
 import Data.Map (fromList, lookup)
 import Data.Maybe (fromMaybe)
 
@@ -32,6 +33,12 @@ data TrVals a = TrVals
     , getDesigTrVals :: [a]
     } deriving (Show, Eq)
 
+makeTrVals :: Eq a => [a] -> [a] -> TrVals a
+makeTrVals trVals desigTrVals =
+    case (nub desigTrVals) \\ (nub trVals) of
+    [] -> TrVals trVals desigTrVals
+    _ -> error "Error(makeTrVals): Set of truth values isn't superset of set of designated Truth values!"
+
 -- | class of finite, many-values semantics
 data Semantics a b = Semantics {
     trVals :: [b],
@@ -39,7 +46,7 @@ data Semantics a b = Semantics {
     eval :: Formula b -> Formula b,
     domain :: Formula a -> [a -> b],
     models :: Formula a -> [a -> b],
-    modelsLookup :: Formula a -> [(a,b)], -- this is possibly very wrong ...
+    modelsLookup :: Formula a -> [[(a,b)]], -- this is possibly very wrong ...
     valid :: Formula a -> Bool,
     sat :: Formula a -> Bool,
     unsat :: Formula a -> Bool,
@@ -63,14 +70,6 @@ makeSemantics tvs evalFn = Semantics
 protoSat tvs evalFn f = (not . null) (makeModels tvs evalFn f)
 protoValid tvs evalFn f = length (makeModels tvs evalFn f) == length (makeDomain tvs f)
 
-
-
-
--- interpretation / assignment
-
--- set of possible assignment functions for a formula
--- assignments :: (Eq a, Ord a, Ord b) => [b] -> Formula a -> [a -> b]
-
 -- | function generates the subset of the domain of functions V : P -> TV
 --   where possible models of a formula can stem from.
 makeDomain :: Ord a => TrVals b -> Formula a -> [a -> b]
@@ -93,21 +92,10 @@ makeModels ts eval fm =
         mask = map filt ((eval . ($ fm) . onAtoms) <$> domain)
     in [ m | (m, t) <- domain `zip` mask, t == True ]
 
-makeModelsLookup :: (Ord b, Eq a) => TrVals a -> (Formula a -> Formula a) -> Formula b -> [(b, a)]
+makeModelsLookup :: (Ord a, Eq b) => TrVals b -> (Formula b -> Formula b) -> Formula a -> [[(a, b)]]
 makeModelsLookup ts eval fm =
-    (fmap (,) $ atomsSet fm) <*> ((makeModels ts eval fm) <*> (atomsSet fm))
-
-{- Todo:
-    are there some sensible defaults for valid, unsat and sat,
-    that hold in all possible semantics? (not only PC, LPC, ...)
-    example for PC:
-    -- negation of a tautology yields a contradiction
-    valid = F.Not unsat
-    -- negation of a contradiciton yields a tautology
-    -- -> so its a satisfiable formula
-    unsat = sat . F.Not
-    valid = unsat . F.Not
-    sat = to be implemented
--}
+    let as = atomsSet fm
+        ms = makeModels ts eval fm
+    in map (zip $ as) $ map ($ as) (map map ms)
 
 
