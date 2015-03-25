@@ -4,7 +4,7 @@
 
 import System.Environment (getArgs)
 
-import ParserRequestArgs
+import ParserTasks
 import ProcessTasks
 
 

@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
-module ParserRequestArgs
+module ParserTasks
     ( Error,
       toTasks
     ) where
