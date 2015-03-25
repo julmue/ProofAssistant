@@ -19,7 +19,6 @@ import Data.Function (on)
 import Data.List ((\\), groupBy, sortBy, nub, intersect)
 import Data.Map (fromList, lookup)
 import Data.Maybe (fromMaybe)
-import Debug.Trace
 
 import Formula hiding (True, False)
 import Misc
@@ -99,8 +98,8 @@ intersectModelLookups ms = case ms of
 extendModel :: Eq a => TrVals b -> [a] -> [(a, b)] -> [[(a, b)]]
 extendModel tvs atoms mlookups =
     let as = nub atoms
-        msAtoms = fmap fst mlookups
-        atomsOnly = atoms \\ msAtoms
+        msAtoms = nub $ fmap fst mlookups
+        atomsOnly = as \\ msAtoms
         extensions = sequence $ association atomsOnly (getTrVals tvs)
     in  fmap(mlookups ++) extensions
 
