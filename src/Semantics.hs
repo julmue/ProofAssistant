@@ -37,7 +37,7 @@ data TrVals a = TrVals
 
 makeTrVals :: Eq a => [a] -> [a] -> TrVals a
 makeTrVals vals desigVals =
-    case (nub desigVals) \\ (nub vals) of
+    case nub desigVals \\ nub vals of
     [] -> TrVals vals desigVals
     _ -> error "Error(makeTrVals): Set of truth values isn't superset of set of designated Truth values!"
 
@@ -63,7 +63,7 @@ makeSemantics tvs evalFn = Semantics
     , domain = makeDomain tvs
     , models = makeModels tvs evalFn
     , modelsLookup = makeModelsLookup tvs evalFn
-    , unsat = not . (protoSat tvs evalFn)
+    , unsat = not . protoSat tvs evalFn
     , sat = protoSat tvs evalFn
     , valid = protoValid tvs evalFn
     , entails = protoEntails tvs evalFn
@@ -98,20 +98,20 @@ intersectModelLookups ms = case ms of
 
 extendModel :: Eq a => TrVals b -> [a] -> [(a, b)] -> [[(a, b)]]
 extendModel tvs atoms mlookups =
-    let as = nub $ atoms
+    let as = nub atoms
         msAtoms = fmap fst mlookups
         atomsOnly = atoms \\ msAtoms
         extensions = sequence $ association atomsOnly (getTrVals tvs)
-    in  fmap((++) mlookups) extensions
+    in  fmap(mlookups ++) extensions
 
 sortModels :: Ord a => [[(a, t)]] -> [[(a, t)]]
-sortModels ms =
-    map (sortBy (\(x,_) (y,_) -> x `compare` y)) ms
+sortModels =
+    map (sortBy (\(x,_) (y,_) -> x `compare` y))
 
 
 association :: Functor f => f a -> [b] -> f [(a, b)]
 association l1 l2 =
-    fmap ($ l2) $ fmap (<*>) $ (fmap . fmap) (,) (fmap (pure) l1)
+    fmap (($ l2) . (<*>) . fmap (,) . pure) l1
 
 
 -- | function generates the subset of the domain of functions V : P -> TV
@@ -132,12 +132,12 @@ makeDomain tvs fm =
 makeModels :: (Ord a, Eq b) => TrVals b -> (Formula b -> Formula b) -> Formula a -> [a -> b]
 makeModels ts evalFn fm =
     let d = makeDomain ts fm
-        filt = (flip elem) (Atom <$> (getDesigTrVals ts))
+        filt = flip elem (Atom <$> getDesigTrVals ts)
         mask = map filt ((evalFn . ($ fm) . onAtoms) <$> d)
-    in [ m | (m, t) <- d `zip` mask, t == True ]
+    in [ m | (m, True) <- d `zip` mask]
 
 makeModelsLookup :: (Ord a, Eq b) => TrVals b -> (Formula b -> Formula b) -> Formula a -> [[(a, b)]]
 makeModelsLookup ts evalFn fm =
     let as = atomsSet fm
         ms = makeModels ts evalFn fm
-    in map (zip $ as) $ map ($ as) (map map ms)
+    in map (zip as . ($ as) . map) ms

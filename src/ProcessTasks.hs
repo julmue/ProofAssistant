@@ -19,7 +19,7 @@ import Semantics
 import ShowBox (ShowBox(..))
 
 processTasks :: [Task] -> [ShowBox]
-processTasks tasks = fmap processTask tasks
+processTasks = fmap processTask
 
 processTask :: Task -> ShowBox
 processTask t =
@@ -90,7 +90,7 @@ classificationRM = makeClassification RM.semantics
 
 
 {- property tasks -}
-getProperty :: SemanticsReq -> String -> PropertyReq -> Either [Char] Bool
+getProperty :: SemanticsReq -> String -> PropertyReq -> Either String Bool
 getProperty sem s pa =
     case sem of
     PCReq -> propertyPC s pa
@@ -99,7 +99,7 @@ getProperty sem s pa =
     LPReq -> propertyLP s pa
     RMReq -> propertyRM s pa
 
-makeProperty :: Semantics Prop b -> String -> PropertyReq -> Either [Char] Bool
+makeProperty :: Semantics Prop b -> String -> PropertyReq -> Either String Bool
 makeProperty sem s pa =
     case parse formulaProp "" s of
     (Left err) -> Left $ "Property Propositional Calculus:" ++ show err
@@ -108,24 +108,24 @@ makeProperty sem s pa =
         SatReq -> sat sem f
         UnsatReq -> unsat sem f
 
-propertyPC :: String -> PropertyReq -> Either [Char] Bool
+propertyPC :: String -> PropertyReq -> Either String Bool
 propertyPC = makeProperty PC.semantics
 
-propertyK3 :: String -> PropertyReq -> Either [Char] Bool
+propertyK3 :: String -> PropertyReq -> Either String Bool
 propertyK3 = makeProperty K3.semantics
 
-propertyL3 :: String -> PropertyReq -> Either [Char] Bool
+propertyL3 :: String -> PropertyReq -> Either String Bool
 propertyL3 = makeProperty L3.semantics
 
-propertyLP :: String -> PropertyReq -> Either [Char] Bool
+propertyLP :: String -> PropertyReq -> Either String Bool
 propertyLP = makeProperty LP.semantics
 
-propertyRM :: String -> PropertyReq -> Either [Char] Bool
+propertyRM :: String -> PropertyReq -> Either String Bool
 propertyRM = makeProperty LP.semantics
 
 
 {- model task -}
-getModels :: SemanticsReq -> String -> Either [Char] String
+getModels :: SemanticsReq -> String -> Either String String
 getModels sem s =
     case parse formulaProp "" s of
         (Left err) -> Left $ "Model Propositional Calculus:" ++ show err

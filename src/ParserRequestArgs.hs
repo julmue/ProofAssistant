@@ -94,31 +94,31 @@ oneOf sl = satisfy (`elem` sl)
 noneOf :: [String] -> ParserTok String
 noneOf sl = satisfy $ not . flip elem sl
 
-flagFormula :: [[Char]]
+flagFormula :: [String]
 flagFormula = ["-f","--formula"]
 
-flagSemantics :: [[Char]]
+flagSemantics :: [String]
 flagSemantics = ["-s","--semantics"]
 
-flagTurnstile :: [[Char]]
+flagTurnstile :: [String]
 flagTurnstile = ["-t","--turnstile"]
 
-flagClassification :: [[Char]]
+flagClassification :: [String]
 flagClassification = ["-c","--classify"]
 
-flagProperty :: [[Char]]
+flagProperty :: [String]
 flagProperty = ["-p","--properties"]
 
-flagModel :: [[Char]]
+flagModel :: [String]
 flagModel = ["-m","-ms","--models","--model"]
 
-flagNormalForm :: [[Char]]
+flagNormalForm :: [String]
 flagNormalForm = ["-n","--normalform"]
 
-flagHelp :: [[Char]]
+flagHelp :: [String]
 flagHelp = ["-h","--help"]
 
-flags :: [[Char]]
+flags :: [String]
 flags = flagFormula ++ flagSemantics ++ flagTurnstile ++ flagClassification ++ flagProperty ++
         flagModel ++ flagNormalForm ++ flagHelp
 

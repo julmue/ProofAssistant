@@ -174,7 +174,7 @@ seqSubs :: Eq a => [(Formula a, Formula a)] -> Formula a -> Formula a
 seqSubs subs fm = foldl (\ f sub -> simSubs [sub] f) fm subs
 
 replace :: (Formula a -> Formula a) -> Formula a -> Formula a
-replace rep fm = onFormulas rep fm
+replace = onFormulas
 
 {- typeclass instances of Formula -}
 instance Functor Formula where
