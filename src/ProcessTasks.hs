@@ -26,12 +26,15 @@ processTask t =
     let s = getTaskFormula t
         sem = getTaskSemantics t
     in  case getTaskAction t of
-        TurnstileAction ss      -> ShowBox $ getTurnstile sem s ss
-        ClassifyAction          -> ShowBox $ getClassification sem s
-        (PropertyAction pa)     -> ShowBox $ getProperty sem s pa
-        (ModelAction)           -> ShowBox $ getModels sem s
+        TurnstileAction ss      -> unpack $ getTurnstile sem s ss
+        ClassifyAction          -> unpack $ getClassification sem s
+        (PropertyAction pa)     -> unpack $ getProperty sem s pa
+        (ModelAction)           -> unpack $ getModels sem s
         (NFAction _)            -> error "not yet defined"
         (HelpAction)            -> ShowBox "help"
+  where unpack result = case result of
+            (Left err) -> ShowBox err
+            (Right value) -> ShowBox value
 
 {- entailing relation -}
 getTurnstile :: SemanticsReq -> String -> [String] -> Either String Bool
