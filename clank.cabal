@@ -14,26 +14,26 @@ cabal-version:       >=1.10
 
 executable clank
     main-is:
-        Clank.hs
+        Main.hs
     other-modules:
-        Formula,
-        FormulaPCLaws,
-        Misc,
-        ParserFormula,
-        Parser,
-        ParserProp,
-        ParserRequestArgs,
-        PrettyPrint,
-        ProcessTasks,
-        PropSemanticsK3,
-        PropSemanticsL3,
-        PropSemanticsLP,
-        PropSemanticsPC,
-        PropSemanticsRM,
-        Request,
-        Semantics,
-        Setup,
-        ShowBox
+        Clank.Process.Misc,
+        Clank.Data.PrettyPrint,
+        Clank.Process.Tasks,
+        Clank.Data.Request,
+        Clank.Data.ShowBox,
+        Data.Formula,
+        Data.FormulaPCLaws,
+        Parser.Formula,
+        Parser.Parser,
+        Parser.Prop,
+        Parser.Tasks,
+        Semantics.Semantics,
+        Semantics.Prop.K3,
+        Semantics.Prop.L3,
+        Semantics.Prop.LP,
+        Semantics.Prop.PC,
+        Semantics.Prop.RM,
+        Setup
     other-extensions:    
         ExistentialQuantification
     build-depends:       
@@ -46,3 +46,21 @@ executable clank
     default-language:
         Haskell2010
     ghc-options: -O2 -Wall
+
+
+test-suite tests
+    main-is:           
+        MainTestSuite.hs
+    type:              
+        exitcode-stdio-1.0
+    hs-source-dirs:    
+        test, 
+        src
+    build-depends:     
+        base,
+        HUnit,
+        QuickCheck,
+        test-framework,
+        test-framework-hunit,
+        test-framework-quickcheck2,
+        containers >=0.5 && <0.6
