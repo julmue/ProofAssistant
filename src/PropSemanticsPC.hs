@@ -6,18 +6,17 @@ module PropSemanticsPC
     ) where
 
 import Prelude hiding (not, and, or, lookup)
-import qualified Prelude as P (not)
 
 import Semantics
 import Formula (Formula(Atom,Not,And,Or,Imp,Iff))
 import Prop
-import Debug.Trace (trace)
 
 data V
     = F
     | T
     deriving (Show, Ord, Eq)
 
+trvPC :: TrVals V
 trvPC = makeTrVals [T,F] [T]
 
 -- evaluation function

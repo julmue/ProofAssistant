@@ -137,17 +137,17 @@ getModels sem s =
             RMReq -> show $ showModelsRM f
 
 showModelsPC :: Formula Prop -> [[(Prop, PC.V)]]
-showModelsPC = makeShowModels $ models PC.semantics
+showModelsPC = modelsLookup PC.semantics
 
 showModelsK3 :: Formula Prop -> [[(Prop, K3.V)]]
-showModelsK3 = makeShowModels $ models K3.semantics
+showModelsK3 = modelsLookup K3.semantics
 
 showModelsL3 :: Formula Prop -> [[(Prop, L3.V)]]
-showModelsL3 = makeShowModels $ models L3.semantics
+showModelsL3 = modelsLookup L3.semantics
 
 showModelsLP :: Formula Prop -> [[(Prop, LP.V)]]
-showModelsLP = makeShowModels $ models LP.semantics
+showModelsLP = modelsLookup LP.semantics
 
 showModelsRM :: Formula Prop -> [[(Prop, RM.V)]]
-showModelsRM = makeShowModels $ models RM.semantics
+showModelsRM = modelsLookup RM.semantics
 
