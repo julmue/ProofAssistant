@@ -11,6 +11,7 @@ import qualified Prelude as P (not)
 import Semantics
 import Formula (Formula(Atom,Not,And,Or,Imp,Iff))
 import Prop
+import Debug.Trace (trace)
 
 data V
     = F
