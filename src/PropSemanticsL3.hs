@@ -6,7 +6,7 @@ module PropSemanticsL3
     ) where
 
 import Prelude hiding (not, and, or, lookup, map)
-import qualified Prelude as P (not)
+-- import qualified Prelude as P (not)
 
 import Semantics
 import Formula (Formula(Atom,Not,And,Or,Imp,Iff))
@@ -19,19 +19,19 @@ data V
     | T
     deriving (Show, Eq, Ord)
 
-modelsL3 :: Formula Prop -> [Prop -> V]
-modelsL3 = makeModels [T,I,F] [T] eval
+trvL3 :: TrVals V
+trvL3 = makeTrVals [T,I,F] [T]
 
-eval :: Formula V -> Formula V
-eval fm = case fm of
+evalL3 :: Formula V -> Formula V
+evalL3 fm = case fm of
     (Atom T) -> Atom T
     (Atom I) -> Atom I
     (Atom F) -> Atom F
-    (Not p) -> not (eval p)
-    (And p q) -> and (eval p) (eval q)
-    (Or p q) -> or (eval p) (eval q)
-    (Imp p q) -> imp (eval p) (eval q)
-    (Iff p q) -> iff (eval p) (eval q)
+    (Not p) -> not (evalL3 p)
+    (And p q) -> and (evalL3 p) (evalL3 q)
+    (Or p q) -> or (evalL3 p) (evalL3 q)
+    (Imp p q) -> imp (evalL3 p) (evalL3 q)
+    (Iff p q) -> iff (evalL3 p) (evalL3 q)
     _ -> error "Error(eval): undefined input"
 
 not :: Formula V -> Formula V
@@ -78,23 +78,5 @@ iff :: Formula V -> Formula V -> Formula V
 iff ap@(Atom _) aq@(Atom _) = imp ap aq `and` imp aq ap
 iff _ _ = undefined
 
-
-validL3 :: Formula Prop -> Bool
-validL3 fm = length (modelsL3 fm) == length (assignments [T,I,F] fm)
-
-satL3 :: Formula Prop -> Bool
-satL3 = P.not . unsatL3
-
-unsatL3 :: Formula Prop -> Bool
-unsatL3 = null . modelsL3
-
-semantics :: Semantics Prop (Prop -> V)
-semantics = Semantics {
-    models = modelsL3,
-    valid = validL3,
-    sat = satL3,
-    unsat = unsatL3,
-    entails = undefined
-}
-
-
+semantics :: Semantics Prop V
+semantics = makeSemantics trvL3 evalL3
