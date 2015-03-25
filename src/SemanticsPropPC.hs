@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
-module PropSemanticsPC
+module SemanticsPropPC
     ( V(F,T)
     , semantics
     ) where

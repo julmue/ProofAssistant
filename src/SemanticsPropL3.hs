@@ -1,12 +1,12 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
-module PropSemanticsK3
+module SemanticsPropL3
     ( V(F,I,T)
     , semantics
     ) where
 
 import Prelude hiding (not, and, or, lookup, map)
---import qualified Prelude as P (not)
+-- import qualified Prelude as P (not)
 
 import Semantics
 import Formula (Formula(Atom,Not,And,Or,Imp,Iff))
@@ -19,19 +19,19 @@ data V
     | T
     deriving (Show, Eq, Ord)
 
-trvK3 :: TrVals V
-trvK3 = makeTrVals [T,I,F] [T]
+trvL3 :: TrVals V
+trvL3 = makeTrVals [T,I,F] [T]
 
-evalK3 :: Formula V -> Formula V
-evalK3 fm = case fm of
+evalL3 :: Formula V -> Formula V
+evalL3 fm = case fm of
     (Atom T) -> Atom T
     (Atom I) -> Atom I
     (Atom F) -> Atom F
-    (Not p) -> not (evalK3 p)
-    (And p q) -> and (evalK3 p) (evalK3 q)
-    (Or p q) -> or (evalK3 p) (evalK3 q)
-    (Imp p q) -> imp (evalK3 p) (evalK3 q)
-    (Iff p q) -> iff (evalK3 p) (evalK3 q)
+    (Not p) -> not (evalL3 p)
+    (And p q) -> and (evalL3 p) (evalL3 q)
+    (Or p q) -> or (evalL3 p) (evalL3 q)
+    (Imp p q) -> imp (evalL3 p) (evalL3 q)
+    (Iff p q) -> iff (evalL3 p) (evalL3 q)
     _ -> error "Error(eval): undefined input"
 
 not :: Formula V -> Formula V
@@ -69,7 +69,7 @@ imp (Atom p) aq@(Atom q) =
     T -> aq
     I -> case q of
         T -> Atom T
-        I -> Atom I
+        I -> Atom T
         F -> Atom I
     F -> Atom T
 imp _ _ = undefined
@@ -79,4 +79,4 @@ iff ap@(Atom _) aq@(Atom _) = imp ap aq `and` imp aq ap
 iff _ _ = undefined
 
 semantics :: Semantics Prop V
-semantics = makeSemantics trvK3 evalK3
+semantics = makeSemantics trvL3 evalL3

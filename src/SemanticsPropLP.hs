@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
-module PropSemanticsRM
+module SemanticsPropLP
     ( V(F,I,T)
     , semantics
     ) where
@@ -18,20 +18,20 @@ data V
     | T
     deriving (Show, Eq, Ord)
 
-trvRM :: TrVals V
-trvRM = makeTrVals [T,I,F] [T,I]
+trvLP :: TrVals V
+trvLP = makeTrVals [T,I,F] [T,I]
 
-evalRM :: Formula V -> Formula V
-evalRM fm = case fm of
+evalLP :: Formula V -> Formula V
+evalLP fm = case fm of
     (Atom T) -> Atom T
     (Atom I) -> Atom I
     (Atom F) -> Atom F
-    (Not p) -> not (evalRM p)
-    (And p q) -> and (evalRM p) (evalRM q)
-    (Or p q) -> or (evalRM p) (evalRM q)
-    (Imp p q) -> imp (evalRM p) (evalRM q)
-    (Iff p q) -> iff (evalRM p) (evalRM q)
-    _ -> error "Error(evalRM): undefined input"
+    (Not p) -> not (evalLP p)
+    (And p q) -> and (evalLP p) (evalLP q)
+    (Or p q) -> or (evalLP p) (evalLP q)
+    (Imp p q) -> imp (evalLP p) (evalLP q)
+    (Iff p q) -> iff (evalLP p) (evalLP q)
+    _ -> error "Error(evalLP): undefined input"
 
 not :: Formula V -> Formula V
 not (Atom p) = case p of
@@ -63,11 +63,9 @@ or (Atom p) aq@(Atom q) =
 or _ _ = undefined
 
 imp :: Formula V -> Formula V -> Formula V
-imp (Atom p) (Atom q) =
+imp (Atom p) aq@(Atom q) =
     case p of
-    T -> case q of
-        T -> Atom T
-        _ -> Atom F
+    T -> aq
     I -> case q of
         T -> Atom T
         I -> Atom I
@@ -80,4 +78,6 @@ iff ap@(Atom _) aq@(Atom _) = imp ap aq `and` imp aq ap
 iff _ _ = undefined
 
 semantics :: Semantics Prop V
-semantics = makeSemantics trvRM evalRM
+semantics = makeSemantics trvLP evalLP
+
+

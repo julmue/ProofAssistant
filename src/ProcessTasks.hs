@@ -9,11 +9,11 @@ import Text.Parsec (parse)
 import Formula hiding (True,False)
 import ParserProp
 import Prop
-import qualified PropSemanticsPC as PC
-import qualified PropSemanticsK3 as K3
-import qualified PropSemanticsL3 as L3
-import qualified PropSemanticsLP as LP
-import qualified PropSemanticsRM as RM
+import qualified SemanticsPropPC as PC
+import qualified SemanticsPropK3 as K3
+import qualified SemanticsPropL3 as L3
+import qualified SemanticsPropLP as LP
+import qualified SemanticsPropRM as RM
 import Request
 import Semantics
 import ShowBox (ShowBox(..))
