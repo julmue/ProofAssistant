@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
-module Misc
+module Clank.Process.Misc
     ( cartProd
     , combination
     ) where

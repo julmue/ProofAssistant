@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
-module ParserProp
+module Parser.Prop
     ( prop
     , formulaProp
     ) where
@@ -11,9 +11,9 @@ import Text.Parsec.Char	(letter)
 import Text.Parsec.String (Parser)
 import Text.Parsec.Combinator (many1)
 
-import ParserFormula
-import Prop
-import Formula
+import Parser.Formula
+import Data.Prop
+import Data.Formula
 
 prop :: Parser Prop
 prop =  Prop <$> many1 letter

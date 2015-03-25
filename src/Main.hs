@@ -4,8 +4,8 @@
 
 import System.Environment (getArgs)
 
-import ParserTasks
-import ProcessTasks
+import Parser.Tasks
+import Clank.Process.Tasks
 
 
 main :: IO ()

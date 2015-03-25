@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
-module Parser
+module Parser.Parser
     ( Parser
     , parseString
     ) where

@@ -1,15 +1,15 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
-module SemanticsPropPC
+module Semantics.Prop.PC
     ( V(F,T)
     , semantics
     ) where
 
 import Prelude hiding (not, and, or, lookup)
 
-import Semantics
-import Formula (Formula(Atom,Not,And,Or,Imp,Iff))
-import Prop
+import Semantics.Semantics
+import Data.Formula (Formula(Atom,Not,And,Or,Imp,Iff))
+import Data.Prop
 
 data V
     = F

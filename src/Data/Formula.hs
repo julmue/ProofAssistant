@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
-module Formula
+module Data.Formula
     ( Formula (False, True, Atom, Not, And, Or, Imp, Iff, Forall, Exists)
     , mkAnd
     , mkOr
@@ -29,7 +29,7 @@ import Prelude hiding (Bool(False,True))
 
 import Data.List
 
-import PrettyPrint
+import Clank.Data.PrettyPrint
 
 data Formula a
     = False

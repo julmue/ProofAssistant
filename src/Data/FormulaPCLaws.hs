@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
-module FormulaPCLaws
+module Data.Formula.PCLaws
     ( commuCon
     , commuDis
     , assocConL

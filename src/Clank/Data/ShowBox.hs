@@ -1,6 +1,6 @@
 {-# LANGUAGE ExistentialQuantification #-}
 
-module ShowBox (
+module Clank.Data.ShowBox (
     ShowBox (ShowBox)
     ) where
 

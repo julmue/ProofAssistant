@@ -1,6 +1,6 @@
 -- {-# OPTIONS_GHC -Wall -Werror #-}
 
-module Semantics
+module Semantics.Semantics
     ( Semantics (..)
     , TrVals(..)
     , Property(..)
@@ -20,8 +20,8 @@ import Data.List ((\\), groupBy, sortBy, nub, intersect)
 import Data.Map (fromList, lookup)
 import Data.Maybe (fromMaybe)
 
-import Formula hiding (True, False)
-import Misc
+import Data.Formula hiding (True, False)
+import Clank.Process.Misc
 
 data Property
     = Valid

@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
-module PrettyPrint
+module Clank.Data.PrettyPrint
     ( PrettyPrint (..)
     ) where
 

@@ -1,22 +1,22 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
-module ProcessTasks (
+module Clank.Process.Tasks (
     processTasks
     ) where
 
 import Text.Parsec (parse)
 
-import Formula hiding (True,False)
-import ParserProp
-import Prop
-import qualified SemanticsPropPC as PC
-import qualified SemanticsPropK3 as K3
-import qualified SemanticsPropL3 as L3
-import qualified SemanticsPropLP as LP
-import qualified SemanticsPropRM as RM
-import Request
-import Semantics
-import ShowBox (ShowBox(..))
+import Data.Formula hiding (True,False)
+import Parser.Prop
+import Data.Prop
+import Semantics.Prop.PC as PC
+import Semantics.Prop.K3 as K3
+import Semantics.Prop.L3 as L3
+import Semantics.Prop.LP as LP
+import Semantics.Prop.RM as RM
+import Clank.Data.Request
+import Semantics.Semantics
+import Clank.Data.ShowBox (ShowBox(..))
 
 processTasks :: [Task] -> [ShowBox]
 processTasks = fmap processTask

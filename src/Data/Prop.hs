@@ -1,10 +1,10 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
-module Prop
+module Data.Prop
     ( Prop(..)
     ) where
 
-import PrettyPrint (PrettyPrint, prettyPrint)
+import Clank.Data.PrettyPrint (PrettyPrint, prettyPrint)
 
 newtype Prop = Prop { propName :: String } deriving (Eq, Ord)
 
