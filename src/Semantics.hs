@@ -15,7 +15,7 @@ import Prelude hiding (lookup)
 
 import Control.Applicative ((<$>), (<*>), pure, ZipList(..))
 import Data.Function (on)
-import Data.List ((\\), groupBy, nub)
+import Data.List ((\\), groupBy, sortBy, nub)
 import Data.Map (fromList, lookup)
 import Data.Maybe (fromMaybe)
 
@@ -46,11 +46,11 @@ data Semantics a b = Semantics {
     eval :: Formula b -> Formula b,
     domain :: Formula a -> [a -> b],
     models :: Formula a -> [a -> b],
-    modelsLookup :: Formula a -> [[(a,b)]], -- this is possibly very wrong ...
+    modelsLookup :: Formula a -> [[(a,b)]],
     valid :: Formula a -> Bool,
     sat :: Formula a -> Bool,
     unsat :: Formula a -> Bool,
-    entails :: [Formula a] -> Formula a -> Bool
+    entails :: [Formula a] -> Formula a -> ([[(a,b)]],[[(a,b)]])
 }
 
 makeSemantics :: (Ord a, Eq b) => TrVals b -> (Formula b -> Formula b) -> Semantics a b
@@ -64,11 +64,45 @@ makeSemantics tvs evalFn = Semantics
     , unsat = not . (protoSat tvs evalFn)
     , sat = protoSat tvs evalFn
     , valid = protoValid tvs evalFn
-    , entails = undefined
+    , entails = protoEntails tvs evalFn
     }
 
-protoSat tvs evalFn f = (not . null) (makeModels tvs evalFn f)
-protoValid tvs evalFn f = length (makeModels tvs evalFn f) == length (makeDomain tvs f)
+protoSat :: (Ord a, Eq b) => TrVals b -> (Formula b -> Formula b) -> Formula a -> Bool
+protoSat tvs evalFn fm = (not . null) (makeModels tvs evalFn fm)
+
+protoValid :: (Ord a, Eq b) => TrVals b -> (Formula b -> Formula b) -> Formula a -> Bool
+protoValid tvs evalFn fm = length (makeModels tvs evalFn fm) == length (makeDomain tvs fm)
+
+protoEntails
+  :: (Ord a, Eq b) => TrVals b -> (Formula b -> Formula b) -> [Formula a] -> Formula a ->  ([[(a,b)]],[[(a,b)]])
+protoEntails tvs evalFn fms fm =
+    let fmsModelsLup = concat $ fmap (makeModelsLookup tvs evalFn) fms
+        fmModelsLup = (makeModelsLookup tvs evalFn) fm
+        asInFmsMods = getAtoms fmsModelsLup
+        asInFmMods = getAtoms fmModelsLup
+        asNotInFm = asInFmsMods \\ asInFmMods
+        asNotInFms = asInFmMods \\ asInFmsMods
+        fillingFm = filling asNotInFm
+        fillingFms = filling asNotInFms
+        newFmsMods = newModelsLup fillingFms fmsModelsLup
+        newFmMods = newModelsLup fillingFm fmModelsLup
+    in (sortModels newFmsMods, sortModels newFmMods)
+--     in case (sortModels newFmsMods) \\ (sortModels newFmMods) of
+--         [] -> True
+--         _ -> False
+  where
+    getAtoms f = nub $ fmap fst $ (nub . concat) f
+    filling atoms = fmap (,) atoms <*> (getTrVals tvs)
+    newModelsLup fillings models =
+        case fillings of
+        [] -> models
+        _ -> (fmap (:) fillings) <*> models
+    sortModels ms =
+        map (sortBy (\(x,_) (y,_) -> x `compare` y)) ms
+
+
+
+
 
 -- | function generates the subset of the domain of functions V : P -> TV
 --   where possible models of a formula can stem from.
