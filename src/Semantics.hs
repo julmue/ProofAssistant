@@ -7,22 +7,19 @@ module Semantics
     , makeTrVals
     , makeDomain
     , makeSemantics
-    , fillUpModels
-    , createModels
     , makeModels
     , makeModelsLookup
-    , fillAll
     )
 where
 
 import Prelude hiding (lookup)
 
-import Control.Applicative ((<$>), (<*>), pure, ZipList(..))
+import Control.Applicative ((<$>), (<*>), pure)
 import Data.Function (on)
 import Data.List ((\\), groupBy, sortBy, nub, intersect)
 import Data.Map (fromList, lookup)
 import Data.Maybe (fromMaybe)
-import Debug.Trace (trace)
+import Debug.Trace
 
 import Formula hiding (True, False)
 import Misc
@@ -39,9 +36,9 @@ data TrVals a = TrVals
     } deriving (Show, Eq)
 
 makeTrVals :: Eq a => [a] -> [a] -> TrVals a
-makeTrVals trVals desigTrVals =
-    case (nub desigTrVals) \\ (nub trVals) of
-    [] -> TrVals trVals desigTrVals
+makeTrVals vals desigVals =
+    case (nub desigVals) \\ (nub vals) of
+    [] -> TrVals vals desigVals
     _ -> error "Error(makeTrVals): Set of truth values isn't superset of set of designated Truth values!"
 
 -- | class of finite, many-values semantics
@@ -55,7 +52,7 @@ data Semantics a b = Semantics {
     valid :: Formula a -> Bool,
     sat :: Formula a -> Bool,
     unsat :: Formula a -> Bool,
-    entails :: [Formula a] -> Formula a -> Bool
+    entails :: [Formula a] -> Formula a -> Bool -- [[[(a,b)]]]
 }
 
 makeSemantics :: (Ord a, Eq b) => TrVals b -> (Formula b -> Formula b) -> Semantics a b
@@ -78,43 +75,43 @@ protoSat tvs evalFn fm = (not . null) (makeModels tvs evalFn fm)
 protoValid :: (Ord a, Eq b) => TrVals b -> (Formula b -> Formula b) -> Formula a -> Bool
 protoValid tvs evalFn fm = length (makeModels tvs evalFn fm) == length (makeDomain tvs fm)
 
-protoEntails
-  :: (Ord a, Eq b) => TrVals b -> (Formula b -> Formula b) -> [Formula a] -> Formula a -> Bool
+protoEntails :: (Ord a, Eq b) =>
+     TrVals b -> (Formula b -> Formula b) -> [Formula a] -> Formula a -> Bool --  [[[(a, b)]]]
 protoEntails tvs evalFn fms fm =
-    let msfm = fillUpModels tvs evalFn fm (fms\\[fm])
-        msfms = createModels tvs evalFn fms
-    in case msfms \\ msfm of
+    let modelsFm = makeModelsLookup tvs evalFn fm               -- :: [[(a, b)]]
+        allModelsFms = map (makeModelsLookup tvs evalFn) fms    -- :: [[[(a, b)]]]
+        modelsFms = intersectModelLookups allModelsFms          -- :: [[(a, b)]]
+        atomsInFm = nub $ concat $ (fmap . fmap) fst modelsFm
+        atomsInFms =  nub $ concat $ (fmap . fmap) fst modelsFms
+        atoms = nub $ atomsInFms ++ atomsInFm
+        extModelsFm = sortModels $ concat $ fmap (extendModel tvs atoms) modelsFm
+        extModelsFms = sortModels $ concat $ fmap (extendModel tvs atoms) modelsFms
+--    in  [extModelsFms, extModelsFm,extModelsFms\\extModelsFm]
+    in case extModelsFms\\extModelsFm of
         [] -> True
         _ -> False
 
-association :: Functor f => f a -> [b] -> f [(a, b)]
-association l1 l2 =
-    fmap ($ l2) $ fmap (<*>) $ (fmap . fmap) (,) (fmap (pure) l1)
+intersectModelLookups :: (Ord a, Eq b) => [[[(a, b)]]] -> [[(a, b)]]
+intersectModelLookups ms = case ms of
+     [] -> []
+     x -> foldr1 intersect $ fmap sortModels x
 
-fillUpModels :: (Ord a, Eq b) => TrVals b -> (Formula b -> Formula b) -> Formula a -> [Formula a] -> [[(a, b)]]
-fillUpModels tvs evalFn fm fms =
-    let nFms = fms \\ [fm]
-        msFm = (makeModelsLookup tvs evalFn) fm
-        afm = atomsSet fm
-        afms = nub $ (concat . (fmap atomsSet)) fms
-        aofms = afms \\ afm
-        in case aofms of
-           [] -> msFm
-           _ -> let fillings = sequence $ association aofms (getTrVals tvs)
-                in (fmap (++) fillings) <*> msFm
-
-createModels :: (Ord a, Eq b) => TrVals b -> (Formula b -> Formula b) -> [Formula a] -> [[(a, b)]]
-createModels tvs evalFn fms = case fillAll tvs evalFn fms of
-    [] -> []
-    ms -> foldr1 intersect $ fmap sortModels ms
-
-fillAll :: (Ord a, Eq b) => TrVals b -> (Formula b -> Formula b) -> [Formula a] -> [[[(a, b)]]]
-fillAll tvs evalFn fms =
-    fmap (\fm -> fillUpModels tvs evalFn fm (fms\\[fm])) fms
+extendModel :: Eq a => TrVals b -> [a] -> [(a, b)] -> [[(a, b)]]
+extendModel tvs atoms mlookups =
+    let as = nub $ atoms
+        msAtoms = fmap fst mlookups
+        atomsOnly = atoms \\ msAtoms
+        extensions = sequence $ association atomsOnly (getTrVals tvs)
+    in  fmap((++) mlookups) extensions
 
 sortModels :: Ord a => [[(a, t)]] -> [[(a, t)]]
 sortModels ms =
     map (sortBy (\(x,_) (y,_) -> x `compare` y)) ms
+
+
+association :: Functor f => f a -> [b] -> f [(a, b)]
+association l1 l2 =
+    fmap ($ l2) $ fmap (<*>) $ (fmap . fmap) (,) (fmap (pure) l1)
 
 
 -- | function generates the subset of the domain of functions V : P -> TV
@@ -133,14 +130,14 @@ makeDomain tvs fm =
                     -- sequence partitionsByAtom
 
 makeModels :: (Ord a, Eq b) => TrVals b -> (Formula b -> Formula b) -> Formula a -> [a -> b]
-makeModels ts eval fm =
-    let domain = makeDomain ts fm
+makeModels ts evalFn fm =
+    let d = makeDomain ts fm
         filt = (flip elem) (Atom <$> (getDesigTrVals ts))
-        mask = map filt ((eval . ($ fm) . onAtoms) <$> domain)
-    in [ m | (m, t) <- domain `zip` mask, t == True ]
+        mask = map filt ((evalFn . ($ fm) . onAtoms) <$> d)
+    in [ m | (m, t) <- d `zip` mask, t == True ]
 
 makeModelsLookup :: (Ord a, Eq b) => TrVals b -> (Formula b -> Formula b) -> Formula a -> [[(a, b)]]
-makeModelsLookup ts eval fm =
+makeModelsLookup ts evalFn fm =
     let as = atomsSet fm
-        ms = makeModels ts eval fm
+        ms = makeModels ts evalFn fm
     in map (zip $ as) $ map ($ as) (map map ms)
