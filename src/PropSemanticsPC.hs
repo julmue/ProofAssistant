@@ -1,8 +1,8 @@
--- {-# OPTIONS_GHC -Wall -Werror #-}
+{-# OPTIONS_GHC -Wall -Werror #-}
 
 module PropSemanticsPC
     ( V(F,T)
---    , semantics
+    , semantics
     ) where
 
 import Prelude hiding (not, and, or, lookup)
