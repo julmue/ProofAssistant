@@ -254,7 +254,7 @@ tasksConstructor req =
         ss = getReqSemantics req
         ps = getReqProperties req
         nfs = getReqNormalForms req
-    in  [ Task hf s (TurnstileAction tf)    | s <- ss ] ++
+    in  [ Task hf s (TurnstileAction tf)    | s <- ss, getReqTurnstile req ] ++
         [ Task f s ClassifyAction           | f <- fs, s <- ss, getReqClassify req] ++
         [ Task f s (PropertyAction p)       | f <- fs, s <- ss, p <- ps ] ++
         [ Task f s ModelAction              | f <- fs, s <- ss, getReqModels req ] ++
