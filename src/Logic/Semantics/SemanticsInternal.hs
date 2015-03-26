@@ -1,5 +1,20 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
+-- |
+-- Module      : Semantics.Internal
+-- Description : Type
+-- Copyright   : (c) Julian Müller, 2013
+-- License     : GPL-3
+-- Maintainer  : jul.mue@hotmail.de
+-- Stability   : experimental
+-- Portability : POSIX
+--
+-- This module contains the internal interface of the Semantics module.
+-- It exports the semantics data type, as well as some functions to
+-- generate finite, many-valued by specifiying some truth values
+-- and an evaluation function.
+--
+
 module Logic.Semantics.SemanticsInternal
     ( Semantics (..)
     , TrVals(..)
@@ -31,18 +46,35 @@ import Data.Maybe (fromMaybe)
 
 import Logic.Data.Formula hiding (True, False)
 
+-- | The type of properties a given formula f can have with respect
+-- to a semantics S: f is valid in S, f is satisfiable in S or f is unsatisfiable in S.
 data Property
     = Valid
     | Sat
     | Unsat
     deriving (Show, Eq)
 
+-- | The type of truth-values V that are the codomain of the set of
+-- functions F: A -> V
 data TrVals a = TrVals
     { getTrVals :: [a]
     , getDesigTrVals :: [a]
     } deriving (Show, Eq)
 
--- | class of finite, many-values semantics
+-- | Type for Class of many-valued Semantics of propositional Calculus-
+
+-- Question:
+-- Is it a Class for Formulas over Prop only?
+-- consisting of a triple (A, F1: A->B, F2: B -> B)
+-- where A: Prop
+--       B: functions from Prop -> TV
+--       C: Reduction/Evaluation function Formula B -> Formula B
+-- then the Type a can be dropped
+-- if not what other semantics are possible?
+
+-- Possible extension:
+-- what is with the type Term and a function e': Term a -> Formula b?
+-- I think this is alright
 data Semantics a b = Semantics {
     trVals :: [b],
     desigTrVals :: [b],
@@ -113,9 +145,9 @@ protoValid tvs evalFn fm = length (makeModels tvs evalFn fm) == length (makeDoma
 protoEntails :: (Ord a, Eq b) =>
      TrVals b -> (Formula b -> Formula b) -> [Formula a] -> Formula a -> Bool --  [[[(a, b)]]]
 protoEntails tvs evalFn fms fm =
-    let modelsFm = makeModelsLookup tvs evalFn fm               -- :: [[(a, b)]]
-        allModelsFms = map (makeModelsLookup tvs evalFn) fms    -- :: [[[(a, b)]]]
-        modelsFms = intersectModelLookups allModelsFms          -- :: [[(a, b)]]
+    let modelsFm = makeModelsLookup tvs evalFn fm
+        allModelsFms = map (makeModelsLookup tvs evalFn) fms
+        modelsFms = intersectModelLookups allModelsFms
         atomsInFm = nub $ concat $ (fmap . fmap) fst modelsFm
         atomsInFms =  nub $ concat $ (fmap . fmap) fst modelsFms
         atoms = nub $ atomsInFms ++ atomsInFm
