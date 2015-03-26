@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
-module Parser.Formula
+module Logic.Parser.Formula
     ( formula
     ) where
 
@@ -11,7 +11,7 @@ import Text.Parsec.String
 import qualified Text.Parsec.Token as Token
 import qualified Text.Parsec.Expr as Expr
 
-import qualified Data.Formula as F
+import qualified Logic.Data.Formula as F
 
 {- Lexer -}
 

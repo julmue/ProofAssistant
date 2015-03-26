@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
-module Parser.Tasks
+module Clank.Parser.Task
     ( Error,
       toTasks
     ) where
@@ -11,7 +11,7 @@ import Control.Applicative ( Applicative
                            , pure, empty, many, some
                            )
 
-import Clank.Data.Request
+import Clank.Data.Task
 
 {-  Simple backtracking Parser to operate on a stream of strings;
     for parsing the return value of getArgs.

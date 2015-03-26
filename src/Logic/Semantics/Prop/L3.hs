@@ -1,15 +1,16 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
-module Semantics.Prop.RM
+module Logic.Semantics.Prop.L3
     ( V(F,I,T)
     , semantics
     ) where
 
 import Prelude hiding (not, and, or, lookup, map)
+-- import qualified Prelude as P (not)
 
-import Semantics.Semantics
-import Data.Formula (Formula(Atom,Not,And,Or,Imp,Iff))
-import Data.Prop
+import Logic.Semantics.Semantics
+import Logic.Data.Formula (Formula(Atom,Not,And,Or,Imp,Iff))
+import Logic.Data.Prop
 
 -- type of truth values
 data V
@@ -18,20 +19,20 @@ data V
     | T
     deriving (Show, Eq, Ord)
 
-trvRM :: TrVals V
-trvRM = makeTrVals [T,I,F] [T,I]
+trvL3 :: TrVals V
+trvL3 = makeTrVals [T,I,F] [T]
 
-evalRM :: Formula V -> Formula V
-evalRM fm = case fm of
+evalL3 :: Formula V -> Formula V
+evalL3 fm = case fm of
     (Atom T) -> Atom T
     (Atom I) -> Atom I
     (Atom F) -> Atom F
-    (Not p) -> not (evalRM p)
-    (And p q) -> and (evalRM p) (evalRM q)
-    (Or p q) -> or (evalRM p) (evalRM q)
-    (Imp p q) -> imp (evalRM p) (evalRM q)
-    (Iff p q) -> iff (evalRM p) (evalRM q)
-    _ -> error "Error(evalRM): undefined input"
+    (Not p) -> not (evalL3 p)
+    (And p q) -> and (evalL3 p) (evalL3 q)
+    (Or p q) -> or (evalL3 p) (evalL3 q)
+    (Imp p q) -> imp (evalL3 p) (evalL3 q)
+    (Iff p q) -> iff (evalL3 p) (evalL3 q)
+    _ -> error "Error(eval): undefined input"
 
 not :: Formula V -> Formula V
 not (Atom p) = case p of
@@ -63,14 +64,12 @@ or (Atom p) aq@(Atom q) =
 or _ _ = undefined
 
 imp :: Formula V -> Formula V -> Formula V
-imp (Atom p) (Atom q) =
+imp (Atom p) aq@(Atom q) =
     case p of
-    T -> case q of
-        T -> Atom T
-        _ -> Atom F
+    T -> aq
     I -> case q of
         T -> Atom T
-        I -> Atom I
+        I -> Atom T
         F -> Atom I
     F -> Atom T
 imp _ _ = undefined
@@ -80,4 +79,4 @@ iff ap@(Atom _) aq@(Atom _) = imp ap aq `and` imp aq ap
 iff _ _ = undefined
 
 semantics :: Semantics Prop V
-semantics = makeSemantics trvRM evalRM
+semantics = makeSemantics trvL3 evalL3

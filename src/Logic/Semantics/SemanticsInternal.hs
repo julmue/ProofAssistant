@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
-module Semantics.SemanticsInternal
+module Logic.Semantics.SemanticsInternal
     ( Semantics (..)
     , TrVals(..)
     , Property(..)
@@ -29,7 +29,7 @@ import Data.List ((\\), groupBy, sortBy, nub, intersect)
 import Data.Map (fromList, lookup)
 import Data.Maybe (fromMaybe)
 
-import Data.Formula hiding (True, False)
+import Logic.Data.Formula hiding (True, False)
 
 data Property
     = Valid

@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
-module Data.Formula.PCLaws
+module Logic.Data.FormulaPCLaws
     ( commuCon
     , commuDis
     , assocConL
@@ -42,7 +42,7 @@ module Data.Formula.PCLaws
     ) where
 
 import Prelude hiding (True,False)
-import Formula (Formula(True,False,Not,And,Or,Imp,Iff))
+import Logic.Data.Formula (Formula(True,False,Not,And,Or,Imp,Iff))
 
 
 {- PC Laws

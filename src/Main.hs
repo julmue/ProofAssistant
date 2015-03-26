@@ -4,7 +4,7 @@
 
 import System.Environment (getArgs)
 
-import Parser.Tasks
+import Clank.Parser.Task
 import Clank.Process.Tasks
 
 

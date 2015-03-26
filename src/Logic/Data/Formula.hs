@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
-module Data.Formula
+module Logic.Data.Formula
     ( Formula (False, True, Atom, Not, And, Or, Imp, Iff, Forall, Exists)
     , mkAnd
     , mkOr

@@ -16,23 +16,22 @@ executable clank
     main-is:
         Main.hs
     other-modules:
-        Clank.Data.PrettyPrint,
         Clank.Process.Tasks,
-        Clank.Data.Request,
+        Clank.Data.PrettyPrint,
         Clank.Data.ShowBox,
-        Data.Formula,
-        Data.FormulaPCLaws,
-        Parser.Formula,
-        Parser.Parser,
-        Parser.Prop,
-        Parser.Tasks,
-        Semantics.Semantics,
-        Semantics.Prop.K3,
-        Semantics.Prop.L3,
-        Semantics.Prop.LP,
-        Semantics.Prop.PC,
-        Semantics.Prop.RM,
-        Setup
+        Clank.Data.Task,
+        Clank.Parser.Task,
+        Logic.Data.Formula,
+        Logic.Data.FormulaPCLaws,
+        Logic.Parser.Formula,
+        Logic.Parser.Parser,
+        Logic.Parser.Prop,
+        Logic.Semantics.Semantics,
+        Logic.Semantics.Prop.K3,
+        Logic.Semantics.Prop.L3,
+        Logic.Semantics.Prop.LP,
+        Logic.Semantics.Prop.PC,
+        Logic.Semantics.Prop.RM
     other-extensions:    
         ExistentialQuantification
     build-depends:       
@@ -41,12 +40,34 @@ executable clank
         parsec >=3.1 && <3.2,
         transformers >=0.3 && <0.4
     hs-source-dirs:
-        .,
         src
     default-language:
         Haskell2010
     ghc-options: -O2 -Wall
 
+Library
+    hs-source-dirs: 
+        src 
+    GHC-Options: 
+        -Wall -Werror
+    Exposed-Modules:
+        Logic.Semantics.Semantics,
+        Logic.Data.Formula,
+        Logic.Data.Prop,
+        Logic.Parser.Formula,
+        Logic.Parser.Prop,
+        Logic.Semantics.Prop.PC,
+        Logic.Semantics.Prop.K3,
+        Logic.Semantics.Prop.L3,
+        Logic.Semantics.Prop.LP,
+        Logic.Semantics.Prop.RM
+   Other-Modules:
+        Logic.Semantics.SemanticsInternal
+   Build-Depends:
+        base >=4.7 && <4.8,
+        containers >=0.5 && <0.6,
+        parsec >=3.1 && <3.2,
+        transformers >=0.3 && <0.4
 
 test-suite tests
     main-is:           

@@ -6,16 +6,16 @@ module Clank.Process.Tasks (
 
 import Text.Parsec (parse)
 
-import Data.Formula hiding (True,False)
-import Parser.Prop
-import Data.Prop
-import Semantics.Prop.PC as PC
-import Semantics.Prop.K3 as K3
-import Semantics.Prop.L3 as L3
-import Semantics.Prop.LP as LP
-import Semantics.Prop.RM as RM
-import Clank.Data.Request
-import Semantics.Semantics
+import Logic.Data.Formula hiding (True,False)
+import Logic.Parser.Prop
+import Logic.Data.Prop
+import Logic.Semantics.Semantics
+import Logic.Semantics.Prop.PC as PC
+import Logic.Semantics.Prop.K3 as K3
+import Logic.Semantics.Prop.L3 as L3
+import Logic.Semantics.Prop.LP as LP
+import Logic.Semantics.Prop.RM as RM
+import Clank.Data.Task
 import Clank.Data.ShowBox (ShowBox(..))
 
 processTasks :: [Task] -> [ShowBox]

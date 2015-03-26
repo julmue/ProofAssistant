@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
-module Clank.Data.Request
+module Clank.Data.Task
     ( Request(..)
     , Task(..)
     , Action(..)

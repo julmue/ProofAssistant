@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
-module Parser.Parser
+module Logic.Parser.Parser
     ( Parser
     , parseString
     ) where

@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
-module Data.Prop
+module Logic.Data.Prop
     ( Prop(..)
     ) where
 

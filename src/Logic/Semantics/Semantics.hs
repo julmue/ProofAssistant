@@ -1,6 +1,6 @@
 -- {-# OPTIONS_GHC -Wall -Werror #-}
 
-module Semantics.Semantics
+module Logic.Semantics.Semantics
     ( Semantics (..)
     , TrVals(..)
     , Property(..)
@@ -12,21 +12,15 @@ module Semantics.Semantics
     )
 where
 
-import Semantics.SemanticsInternal
-        ( Semantics (..)
+import Logic.Semantics.SemanticsInternal
+    ( Semantics (..)
     , TrVals(..)
     , Property(..)
     , makeTrVals
-    , makeSemantics
     , makeDomain
+    , makeSemantics
     , makeModels
     , makeModelsLookup
-    , protoSat
-    , protoValid
-    , protoEntails
-    , intersectModelLookups
-    , extendModel
-    , sortModels
-    , association
     )
+
 
