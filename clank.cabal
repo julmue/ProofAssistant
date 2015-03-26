@@ -16,7 +16,6 @@ executable clank
     main-is:
         Main.hs
     other-modules:
-        Clank.Process.Misc,
         Clank.Data.PrettyPrint,
         Clank.Process.Tasks,
         Clank.Data.Request,
