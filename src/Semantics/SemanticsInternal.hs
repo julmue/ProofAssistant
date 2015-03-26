@@ -1,4 +1,4 @@
--- {-# OPTIONS_GHC -Wall -Werror #-}
+{-# OPTIONS_GHC -Wall -Werror #-}
 
 module Semantics.SemanticsInternal
     ( Semantics (..)
@@ -16,6 +16,8 @@ module Semantics.SemanticsInternal
     , extendModel
     , sortModels
     , association
+    , combination
+    , cartProd
     )
 where
 
@@ -28,7 +30,6 @@ import Data.Map (fromList, lookup)
 import Data.Maybe (fromMaybe)
 
 import Data.Formula hiding (True, False)
-import Clank.Process.Misc
 
 data Property
     = Valid
@@ -145,3 +146,15 @@ sortModels =
 association :: Functor f => f a -> [b] -> f [(a, b)]
 association l1 l2 =
     fmap (($ l2) . (<*>) . fmap (,) . pure) l1
+
+-- combination of sets
+-- all possible combinations of single element from every set.
+-- whats the exact name of the thing?
+combination :: [[a]] -> [[a]]
+combination [] = []
+combination [as] = fmap (:[]) as
+combination (x:xs) = (:) <$> x <*> combination xs
+
+-- crossproduct
+cartProd :: [a] -> [b] -> [(a,b)]
+cartProd as bs = (,) <$> as <*> bs
