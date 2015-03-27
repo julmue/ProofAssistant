@@ -16,17 +16,22 @@
 --
 
 module Logic.Semantics.Prop.Internal
-    ( Semantics (..)
+    (
+    -- * Types
+      Semantics (..)
     , TrVals(..)
-    , Property(..)
+    , Property(Valid,Sat,Unsat)
+    -- * Constructor functions
     , makeTrVals
     , makeSemantics
-    , makeDomain
-    , makeModels
-    , makeModelsLookup
+    -- * Prototype functions
+    , protoDomain
+    , protoModels
+    , protoModelsLookup
     , protoSat
     , protoValid
     , protoEntails
+    -- * Utility functions
     , intersectModelLookups
     , extendModel
     , sortModels
@@ -55,106 +60,125 @@ data Property
     | Unsat
     deriving (Show, Eq)
 
--- | The type of truth-values V that are the codomain of the set of
--- functions F: A -> V
+-- | A container type for truth-values; combines the set of truth-values T and DT
+-- (with DT ⊂ T) where DT are the set of designated truth-values.
+-- TrVals is an abstract data type that should only be accesible through its
+-- smart constructor makeTrVals.
 data TrVals a = TrVals
     { getTrVals :: [a]
     , getDesigTrVals :: [a]
     } deriving (Show, Eq)
 
--- | Type for Class of many-valued Semantics of propositional Calculus-
-
--- Question:
--- Is it a Class for Formulas over Prop only?
--- consisting of a triple (A, F1: A->B, F2: B -> B)
--- where A: Prop
---       B: functions from Prop -> TV
---       C: Reduction/Evaluation function Formula B -> Formula B
--- then the Type a can be dropped
--- if not what other semantics are possible?
-
--- Possible extension:
--- what is with the type Term and a function e': Term a -> Formula b?
--- I think this is alright
+-- | Type for the class of many-valued semantics of propositional calculus.
 data Semantics b = Semantics {
+    -- | A set T of truth-values.
     trVals :: [b],
+    -- | A set DT of designated truth-values.
     desigTrVals :: [b],
+    -- | An evaluation function V : Formula T → Formula T
+    -- that reduces Formula T of arbitrary length to a Formula T
+    -- of structure 'Atom t' with t ∈ T.
     eval :: Formula b -> Formula b,
+    -- | A function that maps a Formula Prop f to the set of its potential models PM.
+    -- The assignment functions that are potential models of f have to be defined
+    -- at least for every propositional variable p with p ∈ P(f).
     domain :: Formula Prop -> [Prop -> b],
+    -- | A function that maps a Formula Prop f to the set of its models.
+    -- The assignment functions that are models of of f have to be defined
+    -- at least for every propositional variable p with p ∈ P(f).
     models :: Formula Prop -> [Prop -> b],
+    -- | A function that protos the name-value-pairs of the models of a Formula Prop f explicit.
+    -- The values returned by 'domain' and 'models' are 'raw' functions.
     modelsLookup :: Formula Prop -> [[(Prop,b)]],
+    -- | A function that verifies validity of a Formula Prop f under a Semantics T.
     valid :: Formula Prop -> Bool,
+    -- | A function that verifies satisfiability of a Formula Prop f under a Semantics T.
     sat :: Formula Prop -> Bool,
+    -- | A function that verifies unsatisfiability of a Formula Prop f under a Semantics T.
     unsat :: Formula Prop -> Bool,
+    -- | A function that verifies the entailment relation between a set of Formula Prop F
+    -- and a Formula Prop f under a Semantics S T s.
     entails :: [Formula Prop] -> Formula Prop -> Bool
 }
 
+-- | Smart-constructor for truth-values.
+-- It guarantees the following properties of every TrVal a:
+-- 1) getDesigTrVals a ⊂ getTrVals a
 makeTrVals :: Eq a => [a] -> [a] -> TrVals a
 makeTrVals vals desigVals =
     case nub desigVals \\ nub vals of
     [] -> TrVals vals desigVals
-    _ -> error "Error(makeTrVals): Set of truth values isn't superset of set of designated Truth values!"
+    _ -> error "Error(protoTrVals): Set of truth values isn't superset of set of designated Truth values!"
 
-makeSemantics :: Eq b => TrVals b -> (Formula b -> Formula b) -> Semantics b
+-- | Constructor for a generic many-values propositional semantics Semantics T over truth-values T.
+-- This constructor takes two arguments:
+-- 1) A set of truth values V and designated truth values DV ⊂ V (combined in a type TrVals V).
+-- 2) An evaluation function that reduces a f :: Formula V of arbitrary length to a formula of structure 'Atom t' with t ∈ T.
+--    It has to be defined for the type constructors Atom a, Not a, And a, Or a, Imp a, Iff a of type Formula a.
+makeSemantics :: Eq b =>
+    TrVals b                            -- ^ The truth-value-Argument e.g. makeTrVals [T,F] [F] (assuming there is a data V = T | F)
+    -> (Formula b -> Formula b)         -- ^ An evaluation formula for Formula V; it has to be defined for Atom, Not, And, Or, Imp, Iff.
+    -> Semantics b                      -- ^ The generated Semantics.
 makeSemantics tvs evalFn = Semantics
     { trVals = getTrVals tvs
     , desigTrVals = getDesigTrVals tvs
     , eval = evalFn
-    , domain = makeDomain tvs
-    , models = makeModels tvs evalFn
-    , modelsLookup = makeModelsLookup tvs evalFn
+    , domain = protoDomain tvs
+    , models = protoModels tvs evalFn
+    , modelsLookup = protoModelsLookup tvs evalFn
     , unsat = not . protoSat tvs evalFn
     , sat = protoSat tvs evalFn
     , valid = protoValid tvs evalFn
     , entails = protoEntails tvs evalFn
     }
 
--- | function generates the subset of the domain of functions V : P -> TV
---   where possible models of a formula can stem from.
-makeDomain :: TrVals b -> Formula Prop -> [Prop -> b]
-makeDomain tvs fm =
-    makeAssignmentFn <$> lookupTables
-  where makeAssignmentFn :: [(Prop, b)] -> Prop -> b
-        makeAssignmentFn lookupTable a =
+-- | This is a generic prototype for domain-functions for Formula Prop over truth-values T.
+-- When given a set of truth-values T as an argument (wrapped in TrVals T)
+-- it returns a function d: Formula Prop → Prop → T that generates all possible models/assignment
+-- functions A: Prop → T for a Formula Prop f  based on the propositional variables in f.
+-- d is only a partial function: it is undefined for propositional variables that don't appear in f.
+protoDomain :: TrVals b -> Formula Prop -> [Prop -> b]
+protoDomain tvs fm =
+    protoAssignmentFn <$> lookupTables
+  where protoAssignmentFn :: [(Prop, b)] -> Prop -> b
+        protoAssignmentFn lookupTable a =
             let m = fromList lookupTable
             in fromMaybe (error "Error(Assignment): variable not in assignment function")
                (lookup a m)
         pairsAtomValue = cartProd (atomsSet fm) (getTrVals tvs)
         partitionsByAtom = groupBy ((==) `on` fst) pairsAtomValue
         lookupTables = combination partitionsByAtom
-                    -- sequence partitionsByAtom
 
-makeModels :: Eq b => TrVals b -> (Formula b -> Formula b) -> Formula Prop -> [Prop -> b]
-makeModels ts evalFn fm =
-    let d = makeDomain ts fm
+protoModels :: Eq b => TrVals b -> (Formula b -> Formula b) -> Formula Prop -> [Prop -> b]
+protoModels ts evalFn fm =
+    let d = protoDomain ts fm
         filt = flip elem (Atom <$> getDesigTrVals ts)
         mask = map filt ((evalFn . ($ fm) . onAtoms) <$> d)
     in [ m | (m, True) <- d `zip` mask]
 
-makeModelsLookup :: Eq b => TrVals b -> (Formula b -> Formula b) -> Formula Prop -> [[(Prop, b)]]
-makeModelsLookup ts evalFn fm =
+protoModelsLookup :: Eq b => TrVals b -> (Formula b -> Formula b) -> Formula Prop -> [[(Prop, b)]]
+protoModelsLookup ts evalFn fm =
     let as = atomsSet fm
-        ms = makeModels ts evalFn fm
+        ms = protoModels ts evalFn fm
     in map (zip as . ($ as) . map) ms
 
 protoSat :: Eq b => TrVals b -> (Formula b -> Formula b) -> Formula Prop -> Bool
-protoSat tvs evalFn fm = (not . null) (makeModels tvs evalFn fm)
+protoSat tvs evalFn fm = (not . null) (protoModels tvs evalFn fm)
 
 protoValid :: Eq b => TrVals b -> (Formula b -> Formula b) -> Formula Prop -> Bool
-protoValid tvs evalFn fm = length (makeModels tvs evalFn fm) == length (makeDomain tvs fm)
+protoValid tvs evalFn fm = length (protoModels tvs evalFn fm) == length (protoDomain tvs fm)
 
 protoEntails :: Eq b =>
-     TrVals b -> (Formula b -> Formula b) -> [Formula Prop] -> Formula Prop -> Bool --  [[[(a, b)]]]
+     TrVals b -> (Formula b -> Formula b) -> [Formula Prop] -> Formula Prop -> Bool
 protoEntails tvs evalFn fms fm =
-    let modelsFm = makeModelsLookup tvs evalFn fm
-        allModelsFms = map (makeModelsLookup tvs evalFn) fms
+    let modelsFm = protoModelsLookup tvs evalFn fm
+        allModelsFms = map (protoModelsLookup tvs evalFn) fms
         modelsFms = intersectModelLookups allModelsFms
         atomsInFm = nub $ concat $ (fmap . fmap) fst modelsFm
         atomsInFms =  nub $ concat $ (fmap . fmap) fst modelsFms
         atoms = nub $ atomsInFms ++ atomsInFm
         extModelsFm = sortModels $ concat $ fmap (extendModel tvs atoms) modelsFm
         extModelsFms = sortModels $ concat $ fmap (extendModel tvs atoms) modelsFms
---    in  [extModelsFms, extModelsFm,extModelsFms\\extModelsFm]
     in case extModelsFms\\extModelsFm of
         [] -> True
         _ -> False
@@ -180,14 +204,19 @@ association :: Functor f => f Prop -> [b] -> f [(Prop, b)]
 association l1 l2 =
     fmap (($ l2) . (<*>) . fmap (,) . pure) l1
 
--- combination of sets
--- all possible combinations of single element from every set.
--- whats the exact name of the thing?
+-- | This function generates the combination of list of lists.
+-- example:
+-- combination [[1,2],[3,4]]
+-- > [[1,3],[1,4],[2,3],[2,4]]
+-- possible replacement: sequence xs
 combination :: [[a]] -> [[a]]
 combination [] = []
 combination [as] = fmap (:[]) as
 combination (x:xs) = (:) <$> x <*> combination xs
 
--- crossproduct
+-- | This function generates the cartesian product of two lists.
+-- example:
+-- cartProd [1,2] ['a','b']
+-- > [(1,'a'),(1,'b'),(2,'a'),(2,'b')]
 cartProd :: [a] -> [b] -> [(a,b)]
 cartProd as bs = (,) <$> as <*> bs

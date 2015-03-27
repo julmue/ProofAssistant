@@ -5,10 +5,10 @@ module Logic.Semantics.Prop
     , TrVals(..)
     , Property(..)
     , makeTrVals
-    , makeDomain
     , makeSemantics
-    , makeModels
-    , makeModelsLookup
+    , protoDomain
+    , protoModels
+    , protoModelsLookup
     )
 where
 
@@ -17,10 +17,10 @@ import Logic.Semantics.Prop.Internal
     , TrVals(..)
     , Property(..)
     , makeTrVals
-    , makeDomain
     , makeSemantics
-    , makeModels
-    , makeModelsLookup
+    , protoDomain
+    , protoModels
+    , protoModelsLookup
     )
 
 
