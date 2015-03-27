@@ -1,13 +1,19 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
+-- |
+-- Module: Logic.Data.Formula
+--
+-- External interface of "Logic.Data.Formula".
+--
+
 module Logic.Data.Formula
-    ( Formula (False, True, Atom, Not, And, Or, Imp, Iff, Forall, Exists)
-    , mkAnd
-    , mkOr
-    , mkImp
-    , mkIff
-    , mkForall
-    , mkExists
+    (
+    -- * Types
+      Formula (False, True, Atom, Not, And, Or, Imp, Iff, Forall, Exists)
+    -- * Term destructor functions
+    --
+    -- Functions for deconstricting a 'Formula' based on its main connective.
+    -- ! Attention: These functions are only partial so test before using!
     , destIff
     , antecedent
     , consequent
@@ -15,10 +21,14 @@ module Logic.Data.Formula
     , conjuncts
     , destOr
     , disjuncts
-    , onAtoms
+    -- * Functions over 'Formula'.
+    --
+    -- These functions recursively process a 'Formula' f.
     , onFormulas
-    , overAtoms
     , atomsSet
+    , onAtoms
+    , overAtoms
+    -- * Substitution / Replacement - functions
     , simSubs
     , seqSubs
     , replace
@@ -31,6 +41,7 @@ import Data.List
 
 import Clank.Data.PrettyPrint
 
+-- | The type for formulas.
 data Formula a
     = False
     | True
@@ -44,64 +55,61 @@ data Formula a
     | Exists String (Formula a)
     deriving (Show, Eq)
 
--- constructor functions
-mkAnd :: Formula a -> Formula a -> Formula a
-mkAnd = And
+{- Term destructor functions -}
 
-mkOr :: Formula a -> Formula a -> Formula a
-mkOr = Or
-
-mkImp :: Formula a -> Formula a -> Formula a
-mkImp = Imp
-
-mkIff :: Formula a -> Formula a -> Formula a
-mkIff = Iff
-
-mkForall :: String -> Formula a -> Formula a
-mkForall = Forall
-
-mkExists :: String -> Formula a -> Formula a
-mkExists = Exists
-
--- destructor functions
+-- | For a 'Formula' with the main connective 'Imp': a → b
+-- this function returns a tuple (antecedent,consequent).
 destIff :: Formula a -> (Formula a,Formula a)
 destIff fm = case fm of
     (Iff p q)   -> (p,q)
     _           -> error "dest_iff: argument not an Iff"
 
+-- | For a 'Formula' with the main connective 'Imp': a → b
+-- this function returns the antecedent.
 antecedent :: Formula a -> Formula a
 antecedent fm = case fm of
     (Iff p _)   -> p
     _           -> error "antecedent: argument not an IFF"
 
+-- | For a 'Formula' with the main connective 'Imp': a → b
+-- this function returns the consequent.
 consequent :: Formula a -> Formula a
 consequent fm = case fm of
     (Iff _ q)   -> q
     _           -> error "antecedent: argument not an IFF"
 
+-- | For a 'Formula' with the main connective 'And': a ∧ b
+-- this function returns the tuple (a, b) of the two conjuncts.
 destAnd :: Formula a -> (Formula a,Formula a)
 destAnd fm = case fm of
     (And p q)   -> (p,q)
     _           -> error "dest_iff: argument not and And"
 
+-- | For a 'Formula' with the main connective 'And': a ∧ b
+-- this function returns the list [a, b] of the two conjuncts.
 conjuncts :: Formula a -> [Formula a]
 conjuncts fm = case fm of
     (And p q)   -> conjuncts p ++ conjuncts q
     _           -> [fm]
 
+-- | For a 'Formula' with the main connective 'And': a ∨ b
+-- this function returns the tuple (a, b) of the two disjuncts.
 destOr :: Formula a -> (Formula a,Formula a)
 destOr fm = case fm of
     (Or p q)   -> (p,q)
     _           -> error "dest_iff: argument not and Or"
 
+-- | For a 'Formula' with the main connective 'And': a ∨ b
+-- this function returns the list [a, b] of the two disjuncts.
 disjuncts :: Formula a -> [Formula a]
 disjuncts fm = case fm of
     (Or p q)   -> disjuncts p ++ disjuncts q
     _           -> [fm]
 
--- generic recursive functions over formula
+{- functions over formula -}
 
--- apply function to all atoms of formula but leave structure untouched
+-- | 'onAtoms' applies a function to all atoms of
+-- formula but leave structure untouched.
 onAtoms :: (a -> b) -> Formula a -> Formula b
 onAtoms f fm = case fm of
     True        -> True
@@ -115,6 +123,7 @@ onAtoms f fm = case fm of
     Forall x p  -> Forall x $ onAtoms f p
     Exists x p  -> Forall x $ onAtoms f p
 
+-- | 'onFormulas' applies a function to every subformula of a 'Formula' f.
 onFormulas :: (Formula a -> Formula a) -> Formula a -> Formula a
 onFormulas f fm0 = case fm0 of
     True        -> f True
@@ -128,8 +137,12 @@ onFormulas f fm0 = case fm0 of
     Forall x p  -> Forall x $ f p
     Exists x p  -> Exists x $ f p
 
--- Attention: test this and rework for ill-defined corner cases if possible
--- this HAS to be fixed because it throws!
+-- | 'overAtoms' takes a binary function
+-- and applies it to the atoms in a 'Formula' f.
+--
+-- prominent use case: generate the list of all atoms in a Formula ('atomsSet').
+--
+-- !Attention: cornercases throw! Rework!!!
 overAtoms :: (a -> b -> b) -> Formula a -> b -> b
 overAtoms f fm b = case fm of
     True        -> undefined
@@ -143,15 +156,19 @@ overAtoms f fm b = case fm of
     Forall _ p  -> overAtoms f p b
     Exists _ p  -> overAtoms f p b
 
--- build the set of all atoms in a Formula
+-- | 'atomSet' returns the set of all atoms in a 'Formula' f.
 atomsSet :: Eq a => Formula a -> [a]
 atomsSet fm = nub $  overAtoms (:) fm []
 
-{- substitution -}
+{- Substitution functions -}
 
--- simultaneous substitution
+-- | Simultaneous substitution.
+--
 -- if more than one substitution is specified for the same atom
--- the first one in the list is applied
+-- the first one in the list is applied.
+--
+-- seqSub [(α → β), (β → α)] α ∧ β ⇒ β ∧ α
+--
 simSubs :: (Eq a) => [(Formula a, Formula a)] -> Formula a -> Formula a
 simSubs subList fm = case fm of
     True            -> substitution True
@@ -170,16 +187,27 @@ simSubs subList fm = case fm of
                then f
                else snd . head $ substitutions
 
+-- | Sequential substitution.
+--
+-- seqSub [(α → β), (β → α)] α ∧ β ⇒ α ∧ α
+--
 seqSubs :: Eq a => [(Formula a, Formula a)] -> Formula a -> Formula a
 seqSubs subs fm = foldl (\ f sub -> simSubs [sub] f) fm subs
 
+-- | Replacement.
+--
+-- This formula takes a function from 'Formula' to 'Formula' that should
+-- be one implication a ⇒ b of a semantic equivalence a ⇔ b and replaces b for a
+-- in a 'Formula' f.
+--
 replace :: (Formula a -> Formula a) -> Formula a -> Formula a
 replace = onFormulas
 
-{- typeclass instances of Formula -}
+-- | 'Formula' instance of Functor
 instance Functor Formula where
     fmap = onAtoms
 
+-- | 'Formula' instance of 'PrettyPrint'
 instance PrettyPrint a => PrettyPrint (Formula a) where
     -- prettyPrint Formula a
     prettyPrint fm = case fm of

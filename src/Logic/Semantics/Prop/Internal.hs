@@ -1,13 +1,7 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
 -- |
--- Module      : Semantics.Internal
--- Copyright   : (c) Julian Müller, 2013
--- License     : GPL-3
---
--- Maintainer  : jul.mue@hotmail.de
--- Stability   : experimental
--- Portability : POSIX
+-- Module: Semantics.Internal
 --
 -- Internal interface of the "Logic.Semantics.Prop".
 --

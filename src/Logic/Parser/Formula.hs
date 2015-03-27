@@ -1,7 +1,13 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
+-- |
+-- Module: Logic.Parser.Formula
+--
+
 module Logic.Parser.Formula
-    ( formula
+    (
+    -- * Parsers
+      formula
     ) where
 
 import Data.Functor.Identity (Identity)
@@ -84,6 +90,9 @@ operators =
     ,   [Expr.Infix  (reservedOp "<->"      >> return F.Iff )                       Expr.AssocRight          ]
     ]
 
+-- | (Parsec) Parser for 'Formula'
+-- Takes another Parser for the payload of the 'Formula' as an argument.
+--
 formula :: Parser a -> Parser (F.Formula a)
 formula p =
     Expr.buildExpressionParser operators
