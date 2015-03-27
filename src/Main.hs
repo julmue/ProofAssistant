@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -Wall -Werror #-}
+-- {-# OPTIONS_GHC -Wall -Werror #-}
 
 {-# LANGUAGE ExistentialQuantification #-}
 
@@ -14,7 +14,7 @@ main = do
     args <- getArgs
     case toTasks args of
         (Left err) -> print err
-        (Right tasks) -> mapM_ print $ processTasks tasks
+        (Right tasks) -> mapM_ putStrLn $ processTasks tasks
 
 {- ToDo:
     Languages of Formulas are not properly linked to the semantics ...

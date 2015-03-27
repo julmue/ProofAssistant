@@ -1,8 +1,10 @@
-{-# OPTIONS_GHC -Wall -Werror #-}
+-- {-# OPTIONS_GHC -Wall -Werror #-}
 
 module Clank.Process.Tasks (
     processTasks
     ) where
+
+import Data.List (intersperse)
 
 import Text.Parsec (parse)
 
@@ -18,25 +20,25 @@ import Logic.Semantics.Prop.RM as RM
 import Clank.Data.Task
 import Clank.Data.ShowBox (ShowBox(..))
 
-processTasks :: [Task] -> [ShowBox]
+processTasks :: [Task] -> [String]
 processTasks = fmap processTask
 
-processTask :: Task -> ShowBox
+processTask :: Task -> String
 processTask t =
     let s = getTaskFormula t
         sem = getTaskSemantics t
     in  case getTaskAction t of
-        TurnstileAction ss      -> unpack $ getTurnstile sem s ss
-        ClassifyAction          -> unpack $ getClassification sem s
-        (PropertyAction pa)     -> unpack $ getProperty sem s pa
-        (ModelAction)           -> unpack $ getModels sem s
+        TurnstileAction ss      -> show $ unpack $ getTurnstile sem s ss
+        ClassifyAction          -> show $ unpack $ getClassification sem s
+        (PropertyAction pa)     -> show $ unpack $ getProperty sem s pa
+        (ModelAction)           -> show $ unpack $ getModels sem s
         (NFAction _)            -> error "not yet defined"
-        (HelpAction)            -> ShowBox "help"
+        (HelpAction)            -> help
   where unpack result = case result of
             (Left err) -> ShowBox err
             (Right value) -> ShowBox value
 
-{- entailing relation -}
+{- entailment relation -}
 getTurnstile :: SemanticsReq -> String -> [String] -> Either String Bool
 getTurnstile sem s ss =
     case sem of
@@ -153,4 +155,136 @@ showModelsLP = modelsLookup LP.semantics
 
 showModelsRM :: Formula Prop -> [[(Prop, RM.V)]]
 showModelsRM = modelsLookup RM.semantics
+
+{- clank
+    command line arguments:
+    + semantics ('-s'):
+        + pc
+        + l3
+        * (default: pc)
+    + formula ('-f'):
+        + <String>
+        * default ""
+    + classification request ('-c')
+        (checks if formula is valid, sat, unsat under given semantics.)
+    + property queries ('p'):
+        + valid:       validity check
+        + sat:         satisfiability check
+        + unsat:       unsatisfiability check
+    + model queries ('-m'):
+        + model:       one model (if any)
+        + models:      all models (if any)
+    + normal forms ('-n'):
+        + cnf,
+        + dnf,
+        * default: CNF
+    + help ('-h')
+-}
+help :: String
+help = unlines $ [ "usage: clank [Option1] [Args1] [Option2] [Args2] ... " ] ++
+       ( optToList $ Option
+                        { optName = "Formula"
+                        , optRequired = True
+                        , optFlags = ["-f","--formula"]
+                        , optArgs = ["[Formula1] [Formula2] ..."]
+                        , optSynopsis = "One or more Formulas"
+                        , optExample = "-f 'p -> (p -> q) -> q' ..."
+                        }
+        ) ++
+        ( optToList $ Option
+                        { optName = "Semantics"
+                        , optRequired = True
+                        , optFlags = ["-s","--semantics"]
+                        , optArgs = [ "pc (Propositional Calculus)"
+                                    , "k3 (Strong Kleene)"
+                                    , "l3 (Lukasiewicz"
+                                    , "lp (Priest)"
+                                    , "rm RM"
+                                    ]
+                        , optSynopsis = "One or more Semantics pc"
+                        , optExample = "-f <formula1> <formula2> ... -s pc"
+                        }
+        ) ++
+        ( optToList $ Option
+                        { optName = "Classification"
+                        , optRequired = False
+                        , optFlags = ["-c","--classification"]
+                        , optArgs = [ "NONE"]
+                        , optSynopsis = "classification of a formula - returns 'Valid', 'Sat' or 'Unsat'"
+                        , optExample = "-f <formula1> <formula2> ... -s pc -c"
+                        }
+        ) ++
+        ( optToList $ Option
+                        { optName = "Property Assertion"
+                        , optRequired = False
+                        , optFlags = ["-p","--property"]
+                        , optArgs = [ "valid","sat","unsat"]
+                        , optSynopsis = "Property assertion of a formula - returns 'True' of 'False'"
+                        , optExample = "-f <formula1> <formula2> ... -s pc -p valid"
+                        }
+        ) ++
+        ( optToList $ Option
+                        { optName = "Models"
+                        , optRequired = False
+                        , optFlags = ["-ms","--models"]
+                        , optArgs = [ "NONE"]
+                        , optSynopsis = "returns the models of a formula as (name,value) pairs"
+                        , optExample = "-f <formula1> <formula2> ... -s pc -m"
+                        }
+        ) ++
+               ( optToList $ Option
+                        { optName = "Normalform"
+                        , optRequired = False
+                        , optFlags = ["-n","--normalform"]
+                        , optArgs = [ "not yet implemented"]
+                        , optSynopsis = "returns a formula in a specified normal form"
+                        , optExample = "-f <formula1> <formula2> ... -s pc -m"
+                        }
+        ) ++
+       ( optToList $ Option
+                        { optName = "Entailment"
+                        , optRequired = False
+                        , optFlags = ["-t","--turnstile","--entails"]
+                        , optArgs = [ "NONE"]
+                        , optSynopsis = "returns if <formula1> is entailed by the set <formula2> <formula3> ..."
+                        , optExample = "-f <formula1> <formula2> ... -s -t"
+                        }
+        ) ++
+       ( optToList $ Option
+                        { optName = "Help"
+                        , optRequired = False
+                        , optFlags = ["-h","--help"]
+                        , optArgs = [ "NONE"]
+                        , optSynopsis = "The help file ... you're just reading it ;-) "
+                        , optExample = "-h"
+                        }
+        )
+
+data Option = Option
+    {   optName :: String
+    ,   optRequired :: Bool
+    ,   optFlags :: [String]
+    ,   optArgs :: [String]
+    ,   optSynopsis :: String
+    ,   optExample :: String
+    }
+
+optToList :: Option -> [String]
+optToList opt =
+    [ padding 4 status          20 (optName opt)
+    , padding 8 "Flags:"        24 ((concat . intersperse ", ") $ optFlags opt)
+    , padding 8 "Arguments:"    24 ((concat . intersperse ", ") $ optArgs opt)
+    , padding 8 "Synopsis:"     24 (optSynopsis opt)
+    , padding 8 "Example:"      24 (optExample opt)
+    ]
+  where
+    status = if optRequired opt
+             then "Mandatory Option:"
+             else "Option:"
+    padding :: Int -> [Char] -> Int -> [Char] -> [Char]
+    padding margin1 left margin2 right =
+        let offset = margin2 - length left - margin1
+        in replicate margin1 ' ' ++ left ++ replicate offset ' ' ++ right
+
+
 
