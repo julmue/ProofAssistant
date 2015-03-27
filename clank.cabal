@@ -1,15 +1,12 @@
 name:                clank
 version:             0.1.0.0
 synopsis:            logics framework
--- description:         
--- license:             
--- license-file:     LICENSE
+license:             GPL3             
 author:              Julian Müller
 maintainer:          jul.mue@hotmail.de
--- copyright:           
+copyright:           Julian Müller
 category:            Math
 build-type:          Simple
--- extra-source-files:  
 cabal-version:       >=1.10
 
 executable clank
@@ -26,7 +23,8 @@ executable clank
         Logic.Parser.Formula,
         Logic.Parser.Parser,
         Logic.Parser.Prop,
-        Logic.Semantics.Semantics,
+        Logic.Semantics.Prop,
+        Logic.Semantics.Prop.Internal,
         Logic.Semantics.Prop.K3,
         Logic.Semantics.Prop.L3,
         Logic.Semantics.Prop.LP,
@@ -45,29 +43,31 @@ executable clank
         Haskell2010
     ghc-options: -O2 -Wall
 
-Library
+library
     hs-source-dirs: 
         src 
-    GHC-Options: 
+    ghc-options: 
         -Wall -Werror
-    Exposed-Modules:
-        Logic.Semantics.Semantics,
+    exposed-modules:
         Logic.Data.Formula,
         Logic.Data.Prop,
         Logic.Parser.Formula,
         Logic.Parser.Prop,
+        Logic.Semantics.Prop,
         Logic.Semantics.Prop.PC,
         Logic.Semantics.Prop.K3,
         Logic.Semantics.Prop.L3,
         Logic.Semantics.Prop.LP,
         Logic.Semantics.Prop.RM
-   Other-Modules:
-        Logic.Semantics.SemanticsInternal
-   Build-Depends:
+    other-modules:
+        Logic.Semantics.Prop.Internal
+    build-depends:
         base >=4.7 && <4.8,
         containers >=0.5 && <0.6,
         parsec >=3.1 && <3.2,
         transformers >=0.3 && <0.4
+    default-language:
+        Haskell2010
 
 test-suite tests
     main-is:           
@@ -85,3 +85,5 @@ test-suite tests
         test-framework-hunit,
         test-framework-quickcheck2,
         containers >=0.5 && <0.6
+    default-language:
+        Haskell2010
