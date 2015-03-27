@@ -101,7 +101,7 @@ flagSemantics :: [String]
 flagSemantics = ["-s","--semantics"]
 
 flagTurnstile :: [String]
-flagTurnstile = ["-t","--turnstile"]
+flagTurnstile = ["-t","--turnstile","--entails"]
 
 flagClassification :: [String]
 flagClassification = ["-c","--classify"]
@@ -184,8 +184,7 @@ toNormalForms s = case s of
     "dnf"   -> Right DNFReq
     x       -> Left $ "Error(toNormalForm): " ++ x ++ " is not a known normal form!"
 
--- Maybe this step should be split in two ...
-
+-- error handling has to be refined ...
 getFormulaReqs :: [String] -> Either Error [String]
 getFormulaReqs s = case getArgs scanFormulas s of
     (Left _)        -> Left "Error(getFormulaReqs): No formulas specified"
@@ -263,6 +262,8 @@ tasksConstructor req =
 
 toTasks :: Args -> Either Error [Task]
 toTasks args = case tasksConstructor <$> requestConstructor args of
-    err@(Left _)    -> err
+    -- VVV This can only be preliminary ... sensible error messages are necessary ...
+    -- under no condition should the error handling happen here ...
+    (Left _)        -> Right [ Task [] PCReq HelpAction ]
     (Right [])      -> Right [ Task [] PCReq HelpAction ]
     x               -> x

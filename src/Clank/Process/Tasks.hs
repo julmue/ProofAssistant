@@ -1,4 +1,4 @@
--- {-# OPTIONS_GHC -Wall -Werror #-}
+{-# OPTIONS_GHC -Wall -Werror #-}
 
 module Clank.Process.Tasks (
     processTasks
@@ -156,30 +156,7 @@ showModelsLP = modelsLookup LP.semantics
 showModelsRM :: Formula Prop -> [[(Prop, RM.V)]]
 showModelsRM = modelsLookup RM.semantics
 
-{- clank
-    command line arguments:
-    + semantics ('-s'):
-        + pc
-        + l3
-        * (default: pc)
-    + formula ('-f'):
-        + <String>
-        * default ""
-    + classification request ('-c')
-        (checks if formula is valid, sat, unsat under given semantics.)
-    + property queries ('p'):
-        + valid:       validity check
-        + sat:         satisfiability check
-        + unsat:       unsatisfiability check
-    + model queries ('-m'):
-        + model:       one model (if any)
-        + models:      all models (if any)
-    + normal forms ('-n'):
-        + cnf,
-        + dnf,
-        * default: CNF
-    + help ('-h')
--}
+{- Help -}
 help :: String
 help = unlines $ [ "usage: clank [Option1] [Args1] [Option2] [Args2] ... " ] ++
        ( optToList $ Option
@@ -271,12 +248,16 @@ data Option = Option
 
 optToList :: Option -> [String]
 optToList opt =
-    [ padding 4 status          20 (optName opt)
-    , padding 8 "Flags:"        24 ((concat . intersperse ", ") $ optFlags opt)
-    , padding 8 "Arguments:"    24 ((concat . intersperse ", ") $ optArgs opt)
-    , padding 8 "Synopsis:"     24 (optSynopsis opt)
-    , padding 8 "Example:"      24 (optExample opt)
-    ]
+    let pad11 = 4
+        pad12 = 24
+        pad21 = 8
+        pad22 = 28
+    in  [ padding pad11 status          pad12 (optName opt)
+        , padding pad21 "Flags:"        pad22 ((concat . intersperse ", ") $ optFlags opt)
+        , padding pad21 "Arguments:"    pad22 ((concat . intersperse ", ") $ optArgs opt)
+        , padding pad21 "Synopsis:"     pad22 (optSynopsis opt)
+        , padding pad21 "Example:"      pad22 (optExample opt)
+        ]
   where
     status = if optRequired opt
              then "Mandatory Option:"
@@ -285,6 +266,3 @@ optToList opt =
     padding margin1 left margin2 right =
         let offset = margin2 - length left - margin1
         in replicate margin1 ' ' ++ left ++ replicate offset ' ' ++ right
-
-
-
