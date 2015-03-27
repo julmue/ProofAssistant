@@ -1,5 +1,11 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
+-- |
+-- Module: Logic.Semantics.Prop.LP
+--
+-- Semantics and truth-values of the classical propositional calculus __PC__.
+--
+
 module Logic.Semantics.Prop.PC
     ( V(F,T)
     , semantics
@@ -10,15 +16,15 @@ import Prelude hiding (not, and, or, lookup)
 import Logic.Semantics.Prop
 import Logic.Data.Formula (Formula(Atom,Not,And,Or,Imp,Iff))
 
+-- | Type of truth values of __PC__.
 data V
-    = F
-    | T
+    = F     -- ^ /False/
+    | T    -- ^ /True/
     deriving (Show, Ord, Eq)
 
 trvPC :: TrVals V
 trvPC = makeTrVals [T,F] [T]
 
--- evaluation function
 evalPC :: Formula V -> Formula V
 evalPC fm = case fm of
     (Atom T) -> Atom T
@@ -30,7 +36,6 @@ evalPC fm = case fm of
     (Iff p q) -> iff (evalPC p) (evalPC q)
     _ -> error "Error(eval): undefined input"
 
--- truth functions
 not :: Formula V -> Formula V
 not (Atom p) = case p of
     T -> Atom F
@@ -64,5 +69,7 @@ iff :: Formula V -> Formula V -> Formula V
 iff ap@(Atom _) aq@(Atom _) = imp ap aq `and` imp aq ap
 iff _ _ = undefined
 
+-- | Semantics of LP
+--
 semantics :: Semantics V
 semantics = makeSemantics trvPC evalPC

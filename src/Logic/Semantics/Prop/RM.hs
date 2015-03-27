@@ -1,5 +1,11 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
+-- |
+-- Module: Logic.Semantics.Prop.RM
+--
+-- Semantics and truth-values of the logic __RM__.
+--
+
 module Logic.Semantics.Prop.RM
     ( V(F,I,T)
     , semantics
@@ -10,10 +16,11 @@ import Prelude hiding (not, and, or, lookup, map)
 import Logic.Semantics.Prop
 import Logic.Data.Formula (Formula(Atom,Not,And,Or,Imp,Iff))
 
+-- | Type of truth values of __RM__.
 data V
-    = F
-    | I
-    | T
+    = F     -- ^ /False/
+    | I     -- ^ /True/ and /False/ see: <http://plato.stanford.edu/entries/dialetheism/ dialethism>
+    | T     -- ^ /True/
     deriving (Show, Eq, Ord)
 
 trvRM :: TrVals V
@@ -77,5 +84,7 @@ iff :: Formula V -> Formula V -> Formula V
 iff ap@(Atom _) aq@(Atom _) = imp ap aq `and` imp aq ap
 iff _ _ = undefined
 
+-- | Semantics of LP
+--
 semantics :: Semantics V
 semantics = makeSemantics trvRM evalRM

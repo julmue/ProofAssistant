@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
 -- |
--- Module: Semantics.Internal
+-- Module: Logic.Semantics.Internal
 --
 -- Internal interface of the "Logic.Semantics.Prop".
 --

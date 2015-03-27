@@ -1,5 +1,11 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
+-- |
+-- Module: Logic.Semantics.Prop.LP
+--
+-- Semantics and truth-values of the logic __LP__ (/Priest/).
+--
+
 module Logic.Semantics.Prop.LP
     ( V(F,I,T)
     , semantics
@@ -10,10 +16,11 @@ import Prelude hiding (not, and, or, lookup, map)
 import Logic.Semantics.Prop
 import Logic.Data.Formula (Formula(Atom,Not,And,Or,Imp,Iff))
 
+-- | Type of truth values of __LP__.
 data V
-    = F
-    | I
-    | T
+    = F     -- ^ /False/
+    | I     -- ^ /True/ and /False/ see: <http://plato.stanford.edu/entries/dialetheism/ dialethism>
+    | T     -- ^ /True/
     deriving (Show, Eq, Ord)
 
 trvLP :: TrVals V
@@ -75,6 +82,8 @@ iff :: Formula V -> Formula V -> Formula V
 iff ap@(Atom _) aq@(Atom _) = imp ap aq `and` imp aq ap
 iff _ _ = undefined
 
+-- | Semantics of LP
+--
 semantics :: Semantics V
 semantics = makeSemantics trvLP evalLP
 

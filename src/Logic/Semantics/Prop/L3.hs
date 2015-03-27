@@ -1,5 +1,11 @@
 {-# OPTIONS_GHC -Wall -Werror #-}
 
+-- |
+-- Module: Logic.Semantics.Prop.L3
+--
+-- Semantics and truth-values of the logic __L3__ (/Lukasiewicz/).
+--
+
 module Logic.Semantics.Prop.L3
     ( V(F,I,T)
     , semantics
@@ -10,10 +16,11 @@ import Prelude hiding (not, and, or, lookup, map)
 import Logic.Semantics.Prop
 import Logic.Data.Formula (Formula(Atom,Not,And,Or,Imp,Iff))
 
+-- | Type of truth values of __L3__.
 data V
-    = F
-    | I
-    | T
+    = F     -- ^ /False/
+    | I     -- ^ Neither /True/ nor /False/
+    | T     -- ^ /True/
     deriving (Show, Eq, Ord)
 
 trvL3 :: TrVals V
@@ -75,5 +82,7 @@ iff :: Formula V -> Formula V -> Formula V
 iff ap@(Atom _) aq@(Atom _) = imp ap aq `and` imp aq ap
 iff _ _ = undefined
 
+-- | Semantics of K3
+--
 semantics :: Semantics V
 semantics = makeSemantics trvL3 evalL3
