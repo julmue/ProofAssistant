@@ -1,11 +1,27 @@
 -- {-# OPTIONS_GHC -Wall -Werror #-}
 
+-- |
+-- Module      : Semantics.Internal
+-- Copyright   : (c) Julian Müller, 2013
+-- License     : GPL-3
+--
+-- Maintainer  : jul.mue@hotmail.de
+-- Stability   : experimental
+-- Portability : POSIX
+--
+-- External interface of the "Logic.Semantics.Prop".
+--
+
 module Logic.Semantics.Prop
-    ( Semantics (..)
-    , TrVals(..)
+    (
+    -- * Types
+      Semantics (..)
+    , TrVals (..)
     , Property(..)
+    -- * Constructor functions
     , makeTrVals
     , makeSemantics
+    -- * Prototype functions
     , protoDomain
     , protoModels
     , protoModelsLookup
@@ -13,14 +29,3 @@ module Logic.Semantics.Prop
 where
 
 import Logic.Semantics.Prop.Internal
-    ( Semantics (..)
-    , TrVals(..)
-    , Property(..)
-    , makeTrVals
-    , makeSemantics
-    , protoDomain
-    , protoModels
-    , protoModelsLookup
-    )
-
-
