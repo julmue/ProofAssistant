@@ -15,7 +15,7 @@
 -- and an evaluation function.
 --
 
-module Logic.Semantics.SemanticsInternal
+module Logic.Semantics.Prop.Internal
     ( Semantics (..)
     , TrVals(..)
     , Property(..)
@@ -45,6 +45,7 @@ import Data.Map (fromList, lookup)
 import Data.Maybe (fromMaybe)
 
 import Logic.Data.Formula hiding (True, False)
+import Logic.Data.Prop
 
 -- | The type of properties a given formula f can have with respect
 -- to a semantics S: f is valid in S, f is satisfiable in S or f is unsatisfiable in S.
@@ -75,17 +76,17 @@ data TrVals a = TrVals
 -- Possible extension:
 -- what is with the type Term and a function e': Term a -> Formula b?
 -- I think this is alright
-data Semantics a b = Semantics {
+data Semantics b = Semantics {
     trVals :: [b],
     desigTrVals :: [b],
     eval :: Formula b -> Formula b,
-    domain :: Formula a -> [a -> b],
-    models :: Formula a -> [a -> b],
-    modelsLookup :: Formula a -> [[(a,b)]],
-    valid :: Formula a -> Bool,
-    sat :: Formula a -> Bool,
-    unsat :: Formula a -> Bool,
-    entails :: [Formula a] -> Formula a -> Bool -- [[[(a,b)]]]
+    domain :: Formula Prop -> [Prop -> b],
+    models :: Formula Prop -> [Prop -> b],
+    modelsLookup :: Formula Prop -> [[(Prop,b)]],
+    valid :: Formula Prop -> Bool,
+    sat :: Formula Prop -> Bool,
+    unsat :: Formula Prop -> Bool,
+    entails :: [Formula Prop] -> Formula Prop -> Bool
 }
 
 makeTrVals :: Eq a => [a] -> [a] -> TrVals a
@@ -94,7 +95,7 @@ makeTrVals vals desigVals =
     [] -> TrVals vals desigVals
     _ -> error "Error(makeTrVals): Set of truth values isn't superset of set of designated Truth values!"
 
-makeSemantics :: (Ord a, Eq b) => TrVals b -> (Formula b -> Formula b) -> Semantics a b
+makeSemantics :: Eq b => TrVals b -> (Formula b -> Formula b) -> Semantics b
 makeSemantics tvs evalFn = Semantics
     { trVals = getTrVals tvs
     , desigTrVals = getDesigTrVals tvs
@@ -110,10 +111,10 @@ makeSemantics tvs evalFn = Semantics
 
 -- | function generates the subset of the domain of functions V : P -> TV
 --   where possible models of a formula can stem from.
-makeDomain :: Ord a => TrVals b -> Formula a -> [a -> b]
+makeDomain :: TrVals b -> Formula Prop -> [Prop -> b]
 makeDomain tvs fm =
     makeAssignmentFn <$> lookupTables
-  where makeAssignmentFn :: Ord a => [(a,b)] -> a -> b
+  where makeAssignmentFn :: [(Prop, b)] -> Prop -> b
         makeAssignmentFn lookupTable a =
             let m = fromList lookupTable
             in fromMaybe (error "Error(Assignment): variable not in assignment function")
@@ -123,27 +124,27 @@ makeDomain tvs fm =
         lookupTables = combination partitionsByAtom
                     -- sequence partitionsByAtom
 
-makeModels :: (Ord a, Eq b) => TrVals b -> (Formula b -> Formula b) -> Formula a -> [a -> b]
+makeModels :: Eq b => TrVals b -> (Formula b -> Formula b) -> Formula Prop -> [Prop -> b]
 makeModels ts evalFn fm =
     let d = makeDomain ts fm
         filt = flip elem (Atom <$> getDesigTrVals ts)
         mask = map filt ((evalFn . ($ fm) . onAtoms) <$> d)
     in [ m | (m, True) <- d `zip` mask]
 
-makeModelsLookup :: (Ord a, Eq b) => TrVals b -> (Formula b -> Formula b) -> Formula a -> [[(a, b)]]
+makeModelsLookup :: Eq b => TrVals b -> (Formula b -> Formula b) -> Formula Prop -> [[(Prop, b)]]
 makeModelsLookup ts evalFn fm =
     let as = atomsSet fm
         ms = makeModels ts evalFn fm
     in map (zip as . ($ as) . map) ms
 
-protoSat :: (Ord a, Eq b) => TrVals b -> (Formula b -> Formula b) -> Formula a -> Bool
+protoSat :: Eq b => TrVals b -> (Formula b -> Formula b) -> Formula Prop -> Bool
 protoSat tvs evalFn fm = (not . null) (makeModels tvs evalFn fm)
 
-protoValid :: (Ord a, Eq b) => TrVals b -> (Formula b -> Formula b) -> Formula a -> Bool
+protoValid :: Eq b => TrVals b -> (Formula b -> Formula b) -> Formula Prop -> Bool
 protoValid tvs evalFn fm = length (makeModels tvs evalFn fm) == length (makeDomain tvs fm)
 
-protoEntails :: (Ord a, Eq b) =>
-     TrVals b -> (Formula b -> Formula b) -> [Formula a] -> Formula a -> Bool --  [[[(a, b)]]]
+protoEntails :: Eq b =>
+     TrVals b -> (Formula b -> Formula b) -> [Formula Prop] -> Formula Prop -> Bool --  [[[(a, b)]]]
 protoEntails tvs evalFn fms fm =
     let modelsFm = makeModelsLookup tvs evalFn fm
         allModelsFms = map (makeModelsLookup tvs evalFn) fms
@@ -158,12 +159,12 @@ protoEntails tvs evalFn fms fm =
         [] -> True
         _ -> False
 
-intersectModelLookups :: (Ord a, Eq b) => [[[(a, b)]]] -> [[(a, b)]]
+intersectModelLookups :: Eq b => [[[(Prop, b)]]] -> [[(Prop, b)]]
 intersectModelLookups ms = case ms of
      [] -> []
      x -> foldr1 intersect $ fmap sortModels x
 
-extendModel :: Eq a => TrVals b -> [a] -> [(a, b)] -> [[(a, b)]]
+extendModel :: TrVals b -> [Prop] -> [(Prop, b)] -> [[(Prop, b)]]
 extendModel tvs atoms mlookups =
     let as = nub atoms
         msAtoms = nub $ fmap fst mlookups
@@ -171,11 +172,11 @@ extendModel tvs atoms mlookups =
         extensions = sequence $ association atomsOnly (getTrVals tvs)
     in  fmap(mlookups ++) extensions
 
-sortModels :: Ord a => [[(a, t)]] -> [[(a, t)]]
+sortModels :: [[(Prop, b)]] -> [[(Prop, b)]]
 sortModels =
     map (sortBy (\(x,_) (y,_) -> x `compare` y))
 
-association :: Functor f => f a -> [b] -> f [(a, b)]
+association :: Functor f => f Prop -> [b] -> f [(Prop, b)]
 association l1 l2 =
     fmap (($ l2) . (<*>) . fmap (,) . pure) l1
 

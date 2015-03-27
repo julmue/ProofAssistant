@@ -1,6 +1,6 @@
 -- {-# OPTIONS_GHC -Wall -Werror #-}
 
-module Logic.Semantics.Semantics
+module Logic.Semantics.Prop
     ( Semantics (..)
     , TrVals(..)
     , Property(..)
@@ -12,7 +12,7 @@ module Logic.Semantics.Semantics
     )
 where
 
-import Logic.Semantics.SemanticsInternal
+import Logic.Semantics.Prop.Internal
     ( Semantics (..)
     , TrVals(..)
     , Property(..)

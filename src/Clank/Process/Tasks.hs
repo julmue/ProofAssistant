@@ -9,7 +9,7 @@ import Text.Parsec (parse)
 import Logic.Data.Formula hiding (True,False)
 import Logic.Parser.Prop
 import Logic.Data.Prop
-import Logic.Semantics.Semantics
+import Logic.Semantics.Prop
 import Logic.Semantics.Prop.PC as PC
 import Logic.Semantics.Prop.K3 as K3
 import Logic.Semantics.Prop.L3 as L3
@@ -46,7 +46,7 @@ getTurnstile sem s ss =
     LPReq -> turnstile LP.semantics s ss
     RMReq -> turnstile RM.semantics s ss
 
-turnstile :: Semantics Prop b -> String -> [String] -> Either String Bool
+turnstile :: Semantics b -> String -> [String] -> Either String Bool
 turnstile sem s ss =
     case parse formulaProp "" s of
     (Left err) -> Left $ show err
@@ -66,7 +66,7 @@ getClassification sem s =
     LPReq -> classificationLP s
     RMReq -> classificationRM s
 
-makeClassification :: Semantics Prop b -> String -> Either String Property
+makeClassification :: Semantics b -> String -> Either String Property
 makeClassification sem s =
     case parse formulaProp "" s of
     (Left err) -> Left $ "Classification Propositional Calculus:" ++ show err
@@ -102,7 +102,7 @@ getProperty sem s pa =
     LPReq -> propertyLP s pa
     RMReq -> propertyRM s pa
 
-makeProperty :: Semantics Prop b -> String -> PropertyReq -> Either String Bool
+makeProperty :: Semantics b -> String -> PropertyReq -> Either String Bool
 makeProperty sem s pa =
     case parse formulaProp "" s of
     (Left err) -> Left $ "Property Propositional Calculus:" ++ show err

@@ -7,9 +7,8 @@ module Logic.Semantics.Prop.PC
 
 import Prelude hiding (not, and, or, lookup)
 
-import Logic.Semantics.Semantics
+import Logic.Semantics.Prop
 import Logic.Data.Formula (Formula(Atom,Not,And,Or,Imp,Iff))
-import Logic.Data.Prop
 
 data V
     = F
@@ -65,5 +64,5 @@ iff :: Formula V -> Formula V -> Formula V
 iff ap@(Atom _) aq@(Atom _) = imp ap aq `and` imp aq ap
 iff _ _ = undefined
 
-semantics :: Semantics Prop V
+semantics :: Semantics V
 semantics = makeSemantics trvPC evalPC

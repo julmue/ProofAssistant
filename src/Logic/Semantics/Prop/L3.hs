@@ -6,13 +6,10 @@ module Logic.Semantics.Prop.L3
     ) where
 
 import Prelude hiding (not, and, or, lookup, map)
--- import qualified Prelude as P (not)
 
-import Logic.Semantics.Semantics
+import Logic.Semantics.Prop
 import Logic.Data.Formula (Formula(Atom,Not,And,Or,Imp,Iff))
-import Logic.Data.Prop
 
--- type of truth values
 data V
     = F
     | I
@@ -78,5 +75,5 @@ iff :: Formula V -> Formula V -> Formula V
 iff ap@(Atom _) aq@(Atom _) = imp ap aq `and` imp aq ap
 iff _ _ = undefined
 
-semantics :: Semantics Prop V
+semantics :: Semantics V
 semantics = makeSemantics trvL3 evalL3
