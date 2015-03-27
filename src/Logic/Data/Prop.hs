@@ -12,8 +12,6 @@ module Logic.Data.Prop
     Prop(..)
     ) where
 
-import Clank.Data.PrettyPrint (PrettyPrint, prettyPrint)
-
 -- | Type of propositions
 --
 newtype Prop = Prop { propName :: String } deriving (Eq, Ord)
@@ -22,7 +20,5 @@ newtype Prop = Prop { propName :: String } deriving (Eq, Ord)
 instance Show Prop where
     show = propName
 
--- | 'Prop' instance of PrettyPrint.
-instance PrettyPrint Prop where
-    prettyPrint = propName
+
 
