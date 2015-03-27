@@ -1,6 +1,6 @@
 import Test.Framework
 import Test.Framework.Providers.QuickCheck2
-import Semantics.SemanticsInternal
+import Logic.Semantics.Prop.Internal
 
 main = defaultMain tests
 
